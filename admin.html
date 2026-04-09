@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daraz Calculator Admin</title>
+    <link rel="stylesheet" href="assets/css/app.css" />
+</head>
+
+<body>
+    <div class="wrap">
+        <div id="gateBox" class="panel gate-panel">
+            <div class="panel-header">
+                <h2 id="adminGateTitle">Admin Access</h2>
+                <p id="adminGateSubtitle">Enter password to continue.</p>
+            </div>
+
+            <div class="panel-body">
+                <div class="form-grid">
+                    <div>
+                        <label for="adminPassword" id="adminPasswordLabel">Password</label>
+                        <input type="password" id="adminPassword" placeholder="Enter admin password" />
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn primary" id="unlockBtn">Unlock</button>
+                    <a class="btn ghost" href="index.html" id="backToAppBtn">Back to App</a>
+                </div>
+
+                <div class="footer-note" id="adminGateNote">
+                    This page is for managing calculator assumptions and defaults.
+                </div>
+            </div>
+        </div>
+
+        <div id="adminApp" style="display:none;">
+            <div class="hero">
+                <div class="hero-left">
+                    <h1 id="adminTitle">Admin Settings</h1>
+                    <p id="adminSubtitle">
+                        Manage default Daraz assumptions, language, and pricing behavior.
+                    </p>
+                </div>
+
+                <div class="hero-right">
+                    <a class="btn ghost" href="index.html" id="goToCalculatorBtn">Calculator</a>
+                    <button class="btn primary" id="saveSettingsBtn">Save Settings</button>
+                    <button class="btn warn" id="lockBtn">Lock</button>
+                    <button class="btn danger" id="resetSettingsBtn">Reset Settings</button>
+                </div>
+            </div>
+
+            <div class="grid-admin">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 id="variableRatesTitle">Variable Rates (%)</h2>
+                        <p id="variableRatesSubtitle">
+                            Percentage-based Daraz charges.
+                        </p>
+                    </div>
+
+                    <div class="panel-body">
+                        <div class="form-grid">
+                            <div>
+                                <label for="commissionRate" id="commissionRateLabel">Commission %</label>
+                                <input type="number" id="commissionRate" step="0.01" />
+                            </div>
+
+                            <div>
+                                <label for="paymentFeeRate" id="paymentFeeRateLabel">Payment Fee %</label>
+                                <input type="number" id="paymentFeeRate" step="0.01" />
+                            </div>
+
+                            <div>
+                                <label for="freeShippingRate" id="freeShippingRateLabel">Free Shipping Fee %</label>
+                                <input type="number" id="freeShippingRate" step="0.01" />
+                            </div>
+
+                            <div>
+                                <label for="coinsRate" id="coinsRateLabel">Coins %</label>
+                                <input type="number" id="coinsRate" step="0.01" />
+                            </div>
+
+                            <div>
+                                <label for="voucherRate" id="voucherRateLabel">Voucher %</label>
+                                <input type="number" id="voucherRate" step="0.01" />
+                            </div>
+
+                            <div>
+                                <label for="incomeTaxRate" id="incomeTaxRateLabel">Income Tax %</label>
+                                <input type="number" id="incomeTaxRate" step="0.01" />
+                            </div>
+
+                            <div>
+                                <label for="salesTaxRate" id="salesTaxRateLabel">Sales Tax %</label>
+                                <input type="number" id="salesTaxRate" step="0.01" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 id="fixedSettingsTitle">Fixed & Default Settings</h2>
+                        <p id="fixedSettingsSubtitle">
+                            Pricing defaults and behavior rules.
+                        </p>
+                    </div>
+
+                    <div class="panel-body">
+                        <div class="form-grid">
+                            <div>
+                                <label for="handlingFee" id="handlingFeeLabel">Handling Fee</label>
+                                <input type="number" id="handlingFee" step="0.01" />
+                            </div>
+
+                            <div>
+                                <label for="defaultShippingShortfall" id="defaultShippingShortfallLabel">Default
+                                    Shipping Shortfall</label>
+                                <input type="number" id="defaultShippingShortfall" step="0.01" />
+                            </div>
+
+                            <div>
+                                <label for="defaultDiscountRate" id="defaultDiscountRateLabel">Default Discount
+                                    %</label>
+                                <input type="number" id="defaultDiscountRate" step="0.01" />
+                            </div>
+
+                            <div>
+                                <label for="defaultTargetMarginRate" id="defaultTargetMarginRateLabel">Default Target
+                                    Margin %</label>
+                                <input type="number" id="defaultTargetMarginRate" step="0.01" />
+                            </div>
+
+                            <div>
+                                <label for="defaultLanguage" id="defaultLanguageLabel">Default Language</label>
+                                <select id="defaultLanguage">
+                                    <option value="en">English</option>
+                                    <option value="ru">Roman Urdu</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="footer-note" id="settingsNote">
+                            Public calculator page uses these saved defaults automatically.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="site-footer">
+                <span id="footerPoweredBy">Powered by vweb.dev</span>
+            </footer>
+        </div>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/admin-app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daraz Calculator Pro</title>
+    <link rel="stylesheet" href="assets/css/app.css" />
+</head>
+
+<body>
+    <div class="wrap">
+        <header class="topbar no-print">
+            <div class="topbar-left">
+                <h1 id="appTitle">Daraz Calculator Pro</h1>
+                <p id="appSubtitle">
+                    Enter buying price and instantly understand safe selling prices, current loss, competitor pressure,
+                    and bundle potential.
+                </p>
+            </div>
+
+            <div class="topbar-right">
+                <div class="lang-switch">
+                    <button class="lang-btn active" id="langEnBtn" type="button">EN</button>
+                    <button class="lang-btn" id="langRuBtn" type="button">RU</button>
+                </div>
+
+                <a class="btn ghost btn-sm" href="admin.html" id="adminLink">Admin</a>
+                <button class="btn ghost btn-sm" id="printBtn" type="button">Print</button>
+            </div>
+        </header>
+
+        <div id="reportHeader" class="report-header print-only">
+            <h1>Daraz Pricing & Profitability Report</h1>
+            <p>Generated from Daraz Calculator Pro</p>
+        </div>
+
+        <section class="panel hero-calculator compact-calculator">
+            <div class="panel-header compact-header">
+                <div>
+                    <h2 id="quickCalculatorTitle">Quick Calculator</h2>
+                    <p id="quickCalculatorSubtitle">
+                        Buying price dalo aur foran dekh lo safe prices, current nuksan, competitor per-piece gap, aur
+                        bundle result.
+                    </p>
+                </div>
+                <div class="quick-actions no-print">
+                    <button class="btn primary btn-sm" id="quickCalculateBtn" type="button">Calculate Now</button>
+                    <button class="btn success btn-sm" id="quickSaveBtn" type="button">Save Product</button>
+                    <button class="btn ghost btn-sm" id="quickClearBtn" type="button">Clear</button>
+                </div>
+            </div>
+
+            <div class="panel-body compact-body">
+                <div class="quick-inputs-full">
+                    <div class="compact-input-grid">
+                        <div class="field">
+                            <label for="quickSku" id="quickSkuLabel">SKU / Product Name</label>
+                            <input type="text" id="quickSku" placeholder="e.g. pc silver nosepin" />
+                        </div>
+
+                        <div class="field">
+                            <label for="quickBuyingPrice" id="quickBuyingPriceLabel">Buying Price</label>
+                            <input type="number" id="quickBuyingPrice" step="0.01" placeholder="e.g. 10" />
+                        </div>
+
+                        <div class="field">
+                            <label for="quickPackagingCost" id="quickPackagingCostLabel">Packaging Cost</label>
+                            <input type="number" id="quickPackagingCost" step="0.01" value="0" />
+                        </div>
+
+                        <div class="field">
+                            <label for="quickCurrentSellingPrice" id="quickCurrentSellingPriceLabel">Current Selling
+                                Price</label>
+                            <input type="number" id="quickCurrentSellingPrice" step="0.01" placeholder="e.g. 35" />
+                        </div>
+
+                        <div class="field">
+                            <label for="quickBundleMaxQty" id="quickBundleMaxQtyLabel">Max Bundle Qty</label>
+                            <select id="quickBundleMaxQty">
+                                <option value="5">5x</option>
+                                <option value="6">6x</option>
+                                <option value="8">8x</option>
+                                <option value="10">10x</option>
+                                <option value="12" selected>12x</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="quickCompetitorTotalPrice" id="quickCompetitorTotalPriceLabel">Competitor Total
+                                Price</label>
+                            <input type="number" id="quickCompetitorTotalPrice" step="0.01" placeholder="e.g. 180" />
+                        </div>
+
+                        <div class="field">
+                            <label for="quickCompetitorQty" id="quickCompetitorQtyLabel">Competitor Quantity</label>
+                            <input type="number" id="quickCompetitorQty" step="1" placeholder="e.g. 6" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-output-stack">
+                    <div class="mini-section">
+                        <div class="mini-section-title" id="priceStrategyGroupTitle">Price Strategy</div>
+                        <div class="stat-grid three">
+                            <div class="stat-card">
+                                <div class="stat-label" id="minimumPriceLabel">Minimum Price</div>
+                                <div class="stat-value" id="quickMinimumPrice">PKR 0.00</div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-label" id="recommendedPriceLabel">Recommended Price</div>
+                                <div class="stat-value" id="quickRecommendedPrice">PKR 0.00</div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-label" id="discountSafePriceLabel">10% Discount-Safe Price</div>
+                                <div class="stat-value" id="quickDiscountSafePrice">PKR 0.00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mini-section">
+                        <div class="mini-section-title" id="currentRealityGroupTitle">Current Reality</div>
+                        <div class="stat-grid three">
+                            <div class="stat-card">
+                                <div class="stat-label" id="currentPriceResultLabel">Current Selling Price</div>
+                                <div class="stat-value" id="quickCurrentPriceResult">PKR 0.00</div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-label" id="profitLossLabel">Profit / Loss</div>
+                                <div class="stat-value" id="quickProfitLoss">PKR 0.00</div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-label" id="marginResultLabel">Margin %</div>
+                                <div class="stat-value" id="quickMargin">0.00%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="compact-two-col">
+                        <div class="mini-section">
+                            <div class="mini-section-title" id="competitorGroupTitle">Competitor View</div>
+                            <div class="stat-grid two">
+                                <div class="stat-card">
+                                    <div class="stat-label" id="competitorPerPieceLabel">Competitor Per Piece</div>
+                                    <div class="stat-value" id="quickCompetitorPerPiece">PKR 0.00</div>
+                                </div>
+
+                                <div class="stat-card">
+                                    <div class="stat-label" id="yourPerPieceLabel">Your Per Piece</div>
+                                    <div class="stat-value" id="quickYourPerPiece">PKR 0.00</div>
+                                </div>
+
+                                <div class="stat-card">
+                                    <div class="stat-label" id="priceGapLabel">Per Piece Gap</div>
+                                    <div class="stat-value" id="quickPriceGap">PKR 0.00</div>
+                                </div>
+
+                                <div class="stat-card">
+                                    <div class="stat-label" id="competitorStrategyLabel">Suggested Action</div>
+                                    <div class="stat-value" id="quickCompetitorStrategy">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mini-section">
+                            <div class="mini-section-title" id="statusGroupTitle">Decision</div>
+                            <div class="stat-grid two">
+                                <div class="stat-card">
+                                    <div class="stat-label" id="healthStatusLabel">Health Status</div>
+                                    <div class="stat-value" id="quickHealthStatus">-</div>
+                                </div>
+
+                                <div class="stat-card">
+                                    <div class="stat-label" id="recommendationLabel">Recommendation</div>
+                                    <div class="stat-value" id="quickRecommendation">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mini-section">
+                        <div class="mini-section-title" id="bundleGroupTitle">Bundle Comparison</div>
+                        <div class="bundle-table-wrap">
+                            <table class="bundle-table compact-table">
+                                <thead>
+                                    <tr>
+                                        <th id="bundleThQty">Bundle</th>
+                                        <th id="bundleThPrice">Price</th>
+                                        <th id="bundleThProfit">Profit / Loss</th>
+                                        <th id="bundleThStatus">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="quickBundleBody">
+                                    <tr>
+                                        <td>1x</td>
+                                        <td>PKR 0.00</td>
+                                        <td>PKR 0.00</td>
+                                        <td>-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="summary-strip compact-summary">
+            <div class="mini-card">
+                <div class="mini-label" id="labelTotalProducts">Total Products</div>
+                <div class="mini-value" id="summaryProducts">0</div>
+            </div>
+
+            <div class="mini-card">
+                <div class="mini-label" id="labelLossProducts">Loss Products</div>
+                <div class="mini-value warning" id="summaryLossCount">0</div>
+            </div>
+
+            <div class="mini-card">
+                <div class="mini-label" id="labelAvgMargin">Avg Margin %</div>
+                <div class="mini-value" id="summaryAvgMargin">0.00%</div>
+            </div>
+
+            <div class="mini-card">
+                <div class="mini-label" id="labelBestSku">Best SKU</div>
+                <div class="mini-value small" id="summaryBestSku">-</div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header compact-header">
+                <div>
+                    <h2 id="productsTitle">Saved Products</h2>
+                    <p id="productsSubtitle">
+                        Search, filter, and review all saved pricing decisions.
+                    </p>
+                </div>
+            </div>
+
+            <div class="panel-body compact-body">
+                <div class="table-toolbar no-print compact-toolbar">
+                    <div class="toolbar-left">
+                        <input type="text" id="searchInput" placeholder="Search SKU or note" />
+                    </div>
+
+                    <div class="toolbar-right">
+                        <select id="filterSelect">
+                            <option value="all">All</option>
+                            <option value="loss">Loss</option>
+                            <option value="safe">Safe</option>
+                            <option value="bundle">Bundle Candidates</option>
+                        </select>
+
+                        <button class="btn ghost btn-sm" id="exportBtn" type="button">Export CSV</button>
+                    </div>
+                </div>
+
+                <div class="table-wrap data-grid-wrap">
+                    <table class="products-table compact-table sticky-table">
+                        <thead>
+                            <tr>
+                                <th id="thSku">SKU</th>
+                                <th id="thBuyingPrice">Buying Price</th>
+                                <th id="thCurrentPrice">Current Price</th>
+                                <th id="thMinimumPrice">Minimum Price</th>
+                                <th id="thRecommendedPrice">Recommended Price</th>
+                                <th id="thProfitLoss">Profit / Loss</th>
+                                <th id="thStatus">Status</th>
+                                <th id="thRecommendation">Recommendation</th>
+                                <th class="no-print" id="thActions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel no-print">
+            <div class="panel-header compact-header">
+                <div>
+                    <h2 id="advancedToolsTitle">Advanced Tools</h2>
+                    <p id="advancedToolsSubtitle">
+                        Optional tools for offers, bulk entry, charts, and reporting.
+                    </p>
+                </div>
+            </div>
+
+            <div class="panel-body compact-body">
+                <div class="tabs">
+                    <div class="tab-buttons compact-tabs">
+                        <button class="tab-btn active" type="button" data-tab="bulkTab" id="bulkTabBtn">Bulk
+                            Import</button>
+                        <button class="tab-btn" type="button" data-tab="offerTab" id="offerTabBtn">Offer
+                            Planner</button>
+                        <button class="tab-btn" type="button" data-tab="chartsTab" id="chartsTabBtn">Charts</button>
+                        <button class="tab-btn" type="button" data-tab="reportTab" id="reportTabBtn">Report</button>
+                    </div>
+
+                    <div class="tab-panels">
+                        <div class="tab-panel active" id="bulkTab">
+                            <label for="bulkPaste" id="bulkPasteLabel">
+                                Paste rows: SKU, Buying Price, Current Selling Price, Packaging, Shipping Shortfall,
+                                Notes
+                            </label>
+                            <textarea id="bulkPaste" rows="6"
+                                placeholder="SKU-1,10,27,0,16.87,Low ticket product&#10;SKU-2,12,79,2,14.00,Better margin candidate"></textarea>
+
+                            <div class="btn-row">
+                                <button class="btn primary btn-sm" id="bulkImportBtn" type="button">Import Rows</button>
+                                <button class="btn ghost btn-sm" id="clearBulkBtn" type="button">Clear</button>
+                            </div>
+                        </div>
+
+                        <div class="tab-panel" id="offerTab">
+                            <div class="form-grid two">
+                                <div>
+                                    <label for="offerBasePrice" id="offerBasePriceLabel">Base Price</label>
+                                    <input type="number" id="offerBasePrice" step="0.01" placeholder="e.g. 79" />
+                                </div>
+
+                                <div>
+                                    <label for="offerDiscount" id="offerDiscountLabel">Discount %</label>
+                                    <input type="number" id="offerDiscount" step="0.01" value="10" />
+                                </div>
+
+                                <div>
+                                    <label for="offerVoucher" id="offerVoucherLabel">Extra Voucher %</label>
+                                    <input type="number" id="offerVoucher" step="0.01" value="0" />
+                                </div>
+
+                                <div>
+                                    <label for="offerCoins" id="offerCoinsLabel">Coins %</label>
+                                    <input type="number" id="offerCoins" step="0.01" value="0" />
+                                </div>
+
+                                <div>
+                                    <label for="offerBuyingPrice" id="offerBuyingPriceLabel">Buying Price</label>
+                                    <input type="number" id="offerBuyingPrice" step="0.01" />
+                                </div>
+
+                                <div>
+                                    <label for="offerPackaging" id="offerPackagingLabel">Packaging</label>
+                                    <input type="number" id="offerPackaging" step="0.01" value="0" />
+                                </div>
+                            </div>
+
+                            <div class="btn-row">
+                                <button class="btn success btn-sm" id="offerCalcBtn" type="button">Plan Offer</button>
+                            </div>
+
+                            <div id="offerResult" class="tool-result muted">No offer calculation yet.</div>
+                        </div>
+
+                        <div class="tab-panel" id="chartsTab">
+                            <div class="chart-grid">
+                                <div>
+                                    <h3 class="chart-title" id="profitChartTitle">Profit / Loss by SKU</h3>
+                                    <div id="profitChart" class="chart-box"></div>
+                                </div>
+
+                                <div>
+                                    <h3 class="chart-title" id="revenueChartTitle">Revenue by SKU</h3>
+                                    <div id="revenueChart" class="chart-box"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-panel" id="reportTab">
+                            <div class="table-wrap">
+                                <table class="report-table compact-table">
+                                    <thead>
+                                        <tr>
+                                            <th id="reportThSku">SKU</th>
+                                            <th id="reportThRevenue">Revenue</th>
+                                            <th id="reportThProfitLoss">Profit / Loss</th>
+                                            <th id="reportThMargin">Margin %</th>
+                                            <th id="reportThHealth">Health</th>
+                                            <th id="reportThRecommendation">Recommendation</th>
+                                            <th id="reportThNotes">Notes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="reportTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Slide Drawer -->
+    <div class="drawer-shell no-print">
+        <div id="productDetailArea" class="product-detail-area"></div>
+    </div>
+
+    <footer class="site-footer">
+        <span id="footerPoweredBy">Powered by vweb.dev</span>
+    </footer>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/calculations.js"></script>
+    <script src="assets/js/public-app.js"></script>
+</body>
+
+</html>
