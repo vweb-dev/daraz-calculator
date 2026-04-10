@@ -1,95 +1,138 @@
-window.StorageUtils = (() => {
-    function clone(obj) {
-        return JSON.parse(JSON.stringify(obj));
-    }
+(function () {
+  const { storageKeys, defaults } = window.APP_CONFIG;
 
-    function uid() {
-        return "p_" + Math.random().toString(36).slice(2, 10);
-    }
+  // ---------- BASIC LOCAL STORAGE WRAPPER ----------
 
-    function loadJSON(key, fallback) {
-        try {
-            const raw = localStorage.getItem(key);
-            if (!raw) return clone(fallback);
-            return JSON.parse(raw);
-        } catch (err) {
-            console.error("Storage load error:", err);
-            return clone(fallback);
-        }
+  function setItem(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (err) {
+      console.error("Storage set error:", err);
     }
+  }
 
-    function saveJSON(key, value) {
-        try {
-            localStorage.setItem(key, JSON.stringify(value));
-            return true;
-        } catch (err) {
-            console.error("Storage save error:", err);
-            return false;
-        }
+  function getItem(key, fallback = null) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (err) {
+      console.error("Storage get error:", err);
+      return fallback;
     }
+  }
 
-    function remove(key) {
-        try {
-            localStorage.removeItem(key);
-            return true;
-        } catch (err) {
-            console.error("Storage remove error:", err);
-            return false;
-        }
+  function removeItem(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (err) {
+      console.error("Storage remove error:", err);
     }
+  }
 
-    function loadSettings() {
-        return loadJSON(
-            window.APP_CONFIG.settingsKey,
-            window.APP_CONFIG.defaultSettings
-        );
+  // ---------- LANGUAGE ----------
+
+  function getLanguage() {
+    return getItem(storageKeys.language, defaults.language);
+  }
+
+  function setLanguage(lang) {
+    setItem(storageKeys.language, lang);
+  }
+
+  // ---------- SETTINGS ----------
+
+  function getSettings() {
+    const saved = getItem(storageKeys.settings);
+    if (!saved) {
+      setItem(storageKeys.settings, defaults.settings);
+      return defaults.settings;
     }
+    return { ...defaults.settings, ...saved };
+  }
 
-    function saveSettings(settings) {
-        return saveJSON(window.APP_CONFIG.settingsKey, settings);
-    }
+  function saveSettings(settings) {
+    setItem(storageKeys.settings, settings);
+  }
 
-    function loadProducts() {
-        return loadJSON(
-            window.APP_CONFIG.productsKey,
-            window.APP_CONFIG.defaultProducts
-        );
-    }
+  function resetSettings() {
+    setItem(storageKeys.settings, defaults.settings);
+    return defaults.settings;
+  }
 
-    function saveProducts(products) {
-        return saveJSON(window.APP_CONFIG.productsKey, products);
-    }
+  // ---------- PRODUCTS ----------
 
-    function loadAuth() {
-        return localStorage.getItem(window.APP_CONFIG.authKey) === "1";
-    }
+  function getProducts() {
+    return getItem(storageKeys.products, []);
+  }
 
-    function saveAuth(isUnlocked) {
-        if (isUnlocked) {
-            localStorage.setItem(window.APP_CONFIG.authKey, "1");
-        } else {
-            localStorage.removeItem(window.APP_CONFIG.authKey);
-        }
-    }
+  function saveProducts(products) {
+    setItem(storageKeys.products, products);
+  }
 
-    function resetAllAppData() {
-        remove(window.APP_CONFIG.settingsKey);
-        remove(window.APP_CONFIG.productsKey);
-        remove(window.APP_CONFIG.authKey);
-    }
+  function addProduct(product) {
+    const products = getProducts();
+    products.unshift(product); // latest on top
+    saveProducts(products);
+  }
 
-    return {
-        clone,
-        uid,
-        loadJSON,
-        saveJSON,
-        remove,
-        loadSettings,
-        saveSettings,
-        loadProducts,
-        saveProducts,
-        loadAuth,
-        saveAuth,
-        resetAllAppData
-    };
+  function updateProduct(id, updatedData) {
+    const products = getProducts();
+    const updated = products.map((p) =>
+      p.id === id ? { ...p, ...updatedData } : p
+    );
+    saveProducts(updated);
+  }
+
+  function deleteProduct(id) {
+    const products = getProducts().filter((p) => p.id !== id);
+    saveProducts(products);
+  }
+
+  function getRecentProducts(limit = 5) {
+    const products = getProducts();
+    return products.slice(0, limit);
+  }
+
+  // ---------- UTIL ----------
+
+  function generateId() {
+    return "p_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+  }
+
+  function clearAllData() {
+    removeItem(storageKeys.products);
+    removeItem(storageKeys.settings);
+    removeItem(storageKeys.language);
+    removeItem(storageKeys.adminAuth);
+  }
+
+  // ---------- EXPORT GLOBAL ----------
+
+  window.AppStorage = {
+    // basic
+    setItem,
+    getItem,
+    removeItem,
+
+    // language
+    getLanguage,
+    setLanguage,
+
+    // settings
+    getSettings,
+    saveSettings,
+    resetSettings,
+
+    // products
+    getProducts,
+    saveProducts,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    getRecentProducts,
+
+    // utils
+    generateId,
+    clearAllData
+  };
 })();
