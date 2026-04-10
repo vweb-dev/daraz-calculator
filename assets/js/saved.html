@@ -1,1 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Daraz Calculator Pro - Saved Products</title>
+  <link rel="stylesheet" href="assets/css/app.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar glass">
+      <div class="topbar__left">
+        <div class="brand-block">
+          <h1 class="app-title">Saved Products</h1>
+          <p class="app-subtitle">
+            Review, search, edit, delete, and reopen your saved pricing decisions.
+          </p>
+        </div>
+      </div>
 
+      <div class="topbar__right">
+        <button class="lang-toggle" id="langToggle" type="button" aria-label="Toggle language">
+          <span class="lang-toggle__item lang-toggle__item--active">EN</span>
+          <span class="lang-toggle__divider"></span>
+          <span class="lang-toggle__item">RU</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- SEARCH + FILTER -->
+      <section class="panel glass">
+        <div class="panel__header">
+          <div>
+            <h2 class="panel__title">Search & Filter</h2>
+            <p class="panel__subtitle">Quickly find saved products and review only what matters.</p>
+          </div>
+        </div>
+
+        <div class="panel__body">
+          <div class="form-grid form-grid--main">
+            <div class="field field--full">
+              <label for="savedSearchInput">Search SKU / Product Name</label>
+              <input
+                id="savedSearchInput"
+                type="text"
+                placeholder="Search by SKU or product name"
+              />
+            </div>
+
+            <div class="field">
+              <label for="savedStatusFilter">Filter by Status</label>
+              <select id="savedStatusFilter">
+                <option value="all">All</option>
+                <option value="doNotSell">Do Not Sell</option>
+                <option value="risky">Risky</option>
+                <option value="safe">Safe</option>
+                <option value="healthy">Healthy</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="savedSortFilter">Sort By</label>
+              <select id="savedSortFilter">
+                <option value="latest">Latest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="profitHigh">Highest Profit</option>
+                <option value="profitLow">Lowest Profit</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SUMMARY -->
+      <section class="panel glass">
+        <div class="panel__body">
+          <div class="metric-grid">
+            <article class="metric-card glass-soft">
+              <span class="metric-card__label">Total Saved</span>
+              <strong class="metric-card__value" id="savedTotalCount">0</strong>
+            </article>
+
+            <article class="metric-card glass-soft">
+              <span class="metric-card__label">Loss Items</span>
+              <strong class="metric-card__value" id="savedLossCount">0</strong>
+            </article>
+
+            <article class="metric-card glass-soft">
+              <span class="metric-card__label">Safe / Healthy</span>
+              <strong class="metric-card__value" id="savedSafeCount">0</strong>
+            </article>
+
+            <article class="metric-card glass-soft">
+              <span class="metric-card__label">Avg Profit / Loss</span>
+              <strong class="metric-card__value" id="savedAvgProfit">PKR 0.00</strong>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- SAVED LIST -->
+      <section class="panel glass">
+        <div class="panel__header">
+          <div>
+            <h2 class="panel__title">Saved Products</h2>
+            <p class="panel__subtitle">Tap any card to edit or open it in calculator.</p>
+          </div>
+        </div>
+
+        <div class="panel__body">
+          <div class="recent-products-list" id="savedProductsList">
+            <!-- injected by JS -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- EDIT MODAL -->
+    <div class="modal-backdrop hidden" id="editModalBackdrop">
+      <div class="modal-panel glass">
+        <div class="panel__header">
+          <div>
+            <h2 class="panel__title">Edit Product</h2>
+            <p class="panel__subtitle">Update values and save changes.</p>
+          </div>
+          <button class="icon-btn" id="closeEditModalBtn" type="button">✕</button>
+        </div>
+
+        <div class="panel__body">
+          <input type="hidden" id="editProductId" />
+
+          <div class="form-grid form-grid--main">
+            <div class="field field--full">
+              <label for="editSkuInput">SKU / Product Name</label>
+              <input id="editSkuInput" type="text" />
+            </div>
+
+            <div class="field">
+              <label for="editBuyingPriceInput">Buying Price</label>
+              <input id="editBuyingPriceInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="editPackagingCostInput">Packaging Cost</label>
+              <input id="editPackagingCostInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="editCurrentSellingPriceInput">Current Selling Price</label>
+              <input id="editCurrentSellingPriceInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="editBundleQtyInput">Bundle Qty</label>
+              <select id="editBundleQtyInput">
+                <option value="2">2x</option>
+                <option value="3">3x</option>
+                <option value="5">5x</option>
+                <option value="10">10x</option>
+                <option value="12">12x</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="editCompetitorTotalPriceInput">Competitor Total Price</label>
+              <input id="editCompetitorTotalPriceInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="editCompetitorQtyInput">Competitor Quantity</label>
+              <input id="editCompetitorQtyInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+          </div>
+
+          <div class="action-row" style="margin-top:16px;">
+            <button class="btn btn--primary" id="saveEditedProductBtn" type="button">Save Changes</button>
+            <button class="btn btn--ghost" id="cancelEditBtn" type="button">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="bottom-nav glass" aria-label="Bottom Navigation">
+      <a href="index.html" class="bottom-nav__item">
+        <span class="bottom-nav__icon">⌂</span>
+        <span class="bottom-nav__label">Calculator</span>
+      </a>
+
+      <a href="saved.html" class="bottom-nav__item bottom-nav__item--active">
+        <span class="bottom-nav__icon">♡</span>
+        <span class="bottom-nav__label">Saved</span>
+      </a>
+
+      <a href="bulk.html" class="bottom-nav__item">
+        <span class="bottom-nav__icon">▣</span>
+        <span class="bottom-nav__label">Bulk</span>
+      </a>
+    </nav>
+
+    <footer class="app-footer">
+      Powered by <strong>vweb.dev</strong>
+    </footer>
+  </div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/calculations.js"></script>
+  <script src="assets/js/saved-app.js"></script>
+</body>
+</html>
