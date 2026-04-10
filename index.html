@@ -1,407 +1,444 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-lang="en">
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Daraz Calculator Pro</title>
     <link rel="stylesheet" href="assets/css/app.css" />
 </head>
 
 <body>
-    <div class="wrap">
-        <header class="topbar no-print">
-            <div class="topbar-left">
-                <h1 id="appTitle">Daraz Calculator Pro</h1>
-                <p id="appSubtitle">
-                    Enter buying price and instantly understand safe selling prices, current loss, competitor pressure,
-                    and bundle potential.
-                </p>
+    <div class="app-shell">
+        <header class="topbar glass">
+            <div class="topbar__left">
+                <div class="brand-block">
+                    <h1 class="app-title" data-i18n="appTitle">Daraz Calculator Pro</h1>
+                    <p class="app-subtitle" data-i18n="appSubtitle">
+                        Enter buying price and instantly understand what to sell, at what price, and whether your
+                        current price is causing loss.
+                    </p>
+                </div>
             </div>
 
-            <div class="topbar-right">
-                <div class="lang-switch">
-                    <button class="lang-btn active" id="langEnBtn" type="button">EN</button>
-                    <button class="lang-btn" id="langRuBtn" type="button">RU</button>
-                </div>
-
-                <a class="btn ghost btn-sm" href="admin.html" id="adminLink">Admin</a>
-                <button class="btn ghost btn-sm" id="printBtn" type="button">Print</button>
+            <div class="topbar__right">
+                <button class="lang-toggle" id="langToggle" type="button" aria-label="Toggle language">
+                    <span class="lang-toggle__item lang-toggle__item--active">EN</span>
+                    <span class="lang-toggle__divider"></span>
+                    <span class="lang-toggle__item">RU</span>
+                </button>
             </div>
         </header>
 
-        <div id="reportHeader" class="report-header print-only">
-            <h1>Daraz Pricing & Profitability Report</h1>
-            <p>Generated from Daraz Calculator Pro</p>
-        </div>
-
-        <section class="panel hero-calculator compact-calculator">
-            <div class="panel-header compact-header">
-                <div>
-                    <h2 id="quickCalculatorTitle">Quick Calculator</h2>
-                    <p id="quickCalculatorSubtitle">
-                        Buying price dalo aur foran dekh lo safe prices, current nuksan, competitor per-piece gap, aur
-                        bundle result.
-                    </p>
+        <main class="main-content">
+            <!-- HERO RESULT -->
+            <section class="hero-status glass" id="heroStatusCard">
+                <div class="hero-status__top">
+                    <p class="hero-status__label" data-i18n="heroStatusLabel">Live Decision</p>
+                    <span class="hero-status__badge badge badge--neutral" id="heroHealthBadge">Safe</span>
                 </div>
-                <div class="quick-actions no-print">
-                    <button class="btn primary btn-sm" id="quickCalculateBtn" type="button">Calculate Now</button>
-                    <button class="btn success btn-sm" id="quickSaveBtn" type="button">Save Product</button>
-                    <button class="btn ghost btn-sm" id="quickClearBtn" type="button">Clear</button>
+
+                <div class="hero-status__body">
+                    <div class="hero-status__metric">
+                        <span class="hero-status__metric-label" data-i18n="profitLoss">Profit / Loss</span>
+                        <strong class="hero-status__metric-value" id="heroProfitValue">PKR 0.00</strong>
+                    </div>
+
+                    <div class="hero-status__recommendation" id="heroRecommendation">
+                        <span data-i18n="heroRecommendationDefault">Enter product values to get a pricing
+                            decision.</span>
+                    </div>
                 </div>
-            </div>
 
-            <div class="panel-body compact-body">
-                <div class="quick-inputs-full">
-                    <div class="compact-input-grid">
-                        <div class="field">
-                            <label for="quickSku" id="quickSkuLabel">SKU / Product Name</label>
-                            <input type="text" id="quickSku" placeholder="e.g. pc silver nosepin" />
+                <div class="hero-status__why" id="heroWhyBox">
+                    <ul class="why-list">
+                        <li data-i18n="whyPlaceholder1">Reasoning will appear here.</li>
+                        <li data-i18n="whyPlaceholder2">It will explain why the product is safe or risky.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- QUICK CALCULATOR -->
+            <section class="panel glass quick-panel" id="calculatorSection">
+                <div class="panel__header">
+                    <div>
+                        <h2 class="panel__title" data-i18n="quickCalculatorTitle">Quick Calculator</h2>
+                        <p class="panel__subtitle" data-i18n="quickCalculatorSubtitle">
+                            Enter buying price and instantly see safe prices, current loss, competitor gap, and bundle
+                            result.
+                        </p>
+                    </div>
+
+                    <button class="icon-btn" type="button" id="toggleAssumptionsBtn" aria-label="Toggle assumptions">
+                        <span>⋯</span>
+                    </button>
+                </div>
+
+                <div class="panel__body">
+                    <div class="action-row">
+                        <button class="btn btn--primary" id="calculateNowBtn" type="button" data-i18n="calculateNow">
+                            Calculate Now
+                        </button>
+                        <button class="btn btn--success" id="saveProductBtn" type="button" data-i18n="saveProduct">
+                            Save Product
+                        </button>
+                        <button class="btn btn--ghost" id="clearFormBtn" type="button" data-i18n="clear">
+                            Clear
+                        </button>
+                    </div>
+
+                    <div class="form-grid form-grid--main">
+                        <div class="field field--full">
+                            <label for="skuInput" data-i18n="skuProductName">SKU / Product Name</label>
+                            <input id="skuInput" type="text" placeholder="e.g. pc silver nosepin"
+                                data-i18n-placeholder="skuPlaceholder" />
                         </div>
 
                         <div class="field">
-                            <label for="quickBuyingPrice" id="quickBuyingPriceLabel">Buying Price</label>
-                            <input type="number" id="quickBuyingPrice" step="0.01" placeholder="e.g. 10" />
+                            <label for="buyingPriceInput" data-i18n="buyingPrice">Buying Price</label>
+                            <input id="buyingPriceInput" type="number" inputmode="decimal" placeholder="e.g. 10"
+                                data-i18n-placeholder="buyingPricePlaceholder" />
                         </div>
 
                         <div class="field">
-                            <label for="quickPackagingCost" id="quickPackagingCostLabel">Packaging Cost</label>
-                            <input type="number" id="quickPackagingCost" step="0.01" value="0" />
+                            <label for="packagingCostInput" data-i18n="packagingCost">Packaging Cost</label>
+                            <input id="packagingCostInput" type="number" inputmode="decimal" value="0" />
                         </div>
 
                         <div class="field">
-                            <label for="quickCurrentSellingPrice" id="quickCurrentSellingPriceLabel">Current Selling
+                            <label for="currentSellingPriceInput" data-i18n="currentSellingPrice">Current Selling
                                 Price</label>
-                            <input type="number" id="quickCurrentSellingPrice" step="0.01" placeholder="e.g. 35" />
+                            <input id="currentSellingPriceInput" type="number" inputmode="decimal" placeholder="e.g. 35"
+                                data-i18n-placeholder="sellingPricePlaceholder" />
                         </div>
 
                         <div class="field">
-                            <label for="quickBundleMaxQty" id="quickBundleMaxQtyLabel">Max Bundle Qty</label>
-                            <select id="quickBundleMaxQty">
+                            <label for="bundleQtyInput" data-i18n="maxBundleQty">Max Bundle Qty</label>
+                            <select id="bundleQtyInput">
+                                <option value="2">2x</option>
+                                <option value="3">3x</option>
                                 <option value="5">5x</option>
-                                <option value="6">6x</option>
-                                <option value="8">8x</option>
                                 <option value="10">10x</option>
                                 <option value="12" selected>12x</option>
                             </select>
                         </div>
 
                         <div class="field">
-                            <label for="quickCompetitorTotalPrice" id="quickCompetitorTotalPriceLabel">Competitor Total
+                            <label for="competitorTotalPriceInput" data-i18n="competitorTotalPrice">Competitor Total
                                 Price</label>
-                            <input type="number" id="quickCompetitorTotalPrice" step="0.01" placeholder="e.g. 180" />
+                            <input id="competitorTotalPriceInput" type="number" inputmode="decimal"
+                                placeholder="e.g. 180" data-i18n-placeholder="competitorTotalPlaceholder" />
                         </div>
 
                         <div class="field">
-                            <label for="quickCompetitorQty" id="quickCompetitorQtyLabel">Competitor Quantity</label>
-                            <input type="number" id="quickCompetitorQty" step="1" placeholder="e.g. 6" />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="quick-output-stack">
-                    <div class="mini-section">
-                        <div class="mini-section-title" id="priceStrategyGroupTitle">Price Strategy</div>
-                        <div class="stat-grid three">
-                            <div class="stat-card">
-                                <div class="stat-label" id="minimumPriceLabel">Minimum Price</div>
-                                <div class="stat-value" id="quickMinimumPrice">PKR 0.00</div>
-                            </div>
-
-                            <div class="stat-card">
-                                <div class="stat-label" id="recommendedPriceLabel">Recommended Price</div>
-                                <div class="stat-value" id="quickRecommendedPrice">PKR 0.00</div>
-                            </div>
-
-                            <div class="stat-card">
-                                <div class="stat-label" id="discountSafePriceLabel">10% Discount-Safe Price</div>
-                                <div class="stat-value" id="quickDiscountSafePrice">PKR 0.00</div>
-                            </div>
+                            <label for="competitorQtyInput" data-i18n="competitorQty">Competitor Quantity</label>
+                            <input id="competitorQtyInput" type="number" inputmode="numeric" placeholder="e.g. 6"
+                                data-i18n-placeholder="competitorQtyPlaceholder" />
                         </div>
                     </div>
 
-                    <div class="mini-section">
-                        <div class="mini-section-title" id="currentRealityGroupTitle">Current Reality</div>
-                        <div class="stat-grid three">
-                            <div class="stat-card">
-                                <div class="stat-label" id="currentPriceResultLabel">Current Selling Price</div>
-                                <div class="stat-value" id="quickCurrentPriceResult">PKR 0.00</div>
-                            </div>
-
-                            <div class="stat-card">
-                                <div class="stat-label" id="profitLossLabel">Profit / Loss</div>
-                                <div class="stat-value" id="quickProfitLoss">PKR 0.00</div>
-                            </div>
-
-                            <div class="stat-card">
-                                <div class="stat-label" id="marginResultLabel">Margin %</div>
-                                <div class="stat-value" id="quickMargin">0.00%</div>
-                            </div>
-                        </div>
+                    <div class="quick-step-row">
+                        <button class="chip-btn" type="button" data-add-price="5">+5</button>
+                        <button class="chip-btn" type="button" data-add-price="10">+10</button>
+                        <button class="chip-btn" type="button" data-add-price="20">+20</button>
                     </div>
 
-                    <div class="compact-two-col">
-                        <div class="mini-section">
-                            <div class="mini-section-title" id="competitorGroupTitle">Competitor View</div>
-                            <div class="stat-grid two">
-                                <div class="stat-card">
-                                    <div class="stat-label" id="competitorPerPieceLabel">Competitor Per Piece</div>
-                                    <div class="stat-value" id="quickCompetitorPerPiece">PKR 0.00</div>
-                                </div>
+                    <button class="assumptions-link" id="showAssumptionsBtn" type="button" data-i18n="showAssumptions">
+                        Show all fee & cost assumptions
+                    </button>
 
-                                <div class="stat-card">
-                                    <div class="stat-label" id="yourPerPieceLabel">Your Per Piece</div>
-                                    <div class="stat-value" id="quickYourPerPiece">PKR 0.00</div>
-                                </div>
-
-                                <div class="stat-card">
-                                    <div class="stat-label" id="priceGapLabel">Per Piece Gap</div>
-                                    <div class="stat-value" id="quickPriceGap">PKR 0.00</div>
-                                </div>
-
-                                <div class="stat-card">
-                                    <div class="stat-label" id="competitorStrategyLabel">Suggested Action</div>
-                                    <div class="stat-value" id="quickCompetitorStrategy">-</div>
-                                </div>
+                    <div class="assumptions-box glass-soft hidden" id="assumptionsBox">
+                        <div class="assumptions-grid">
+                            <div class="assumption-item">
+                                <span data-i18n="commissionRate">Commission Rate</span>
+                                <strong id="assumptionCommission">23.20%</strong>
                             </div>
-                        </div>
-
-                        <div class="mini-section">
-                            <div class="mini-section-title" id="statusGroupTitle">Decision</div>
-                            <div class="stat-grid two">
-                                <div class="stat-card">
-                                    <div class="stat-label" id="healthStatusLabel">Health Status</div>
-                                    <div class="stat-value" id="quickHealthStatus">-</div>
-                                </div>
-
-                                <div class="stat-card">
-                                    <div class="stat-label" id="recommendationLabel">Recommendation</div>
-                                    <div class="stat-value" id="quickRecommendation">-</div>
-                                </div>
+                            <div class="assumption-item">
+                                <span data-i18n="handlingFee">Handling Fee</span>
+                                <strong id="assumptionHandling">PKR 11.60</strong>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="mini-section">
-                        <div class="mini-section-title" id="bundleGroupTitle">Bundle Comparison</div>
-                        <div class="bundle-table-wrap">
-                            <table class="bundle-table compact-table">
-                                <thead>
-                                    <tr>
-                                        <th id="bundleThQty">Bundle</th>
-                                        <th id="bundleThPrice">Price</th>
-                                        <th id="bundleThProfit">Profit / Loss</th>
-                                        <th id="bundleThStatus">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="quickBundleBody">
-                                    <tr>
-                                        <td>1x</td>
-                                        <td>PKR 0.00</td>
-                                        <td>PKR 0.00</td>
-                                        <td>-</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="summary-strip compact-summary">
-            <div class="mini-card">
-                <div class="mini-label" id="labelTotalProducts">Total Products</div>
-                <div class="mini-value" id="summaryProducts">0</div>
-            </div>
-
-            <div class="mini-card">
-                <div class="mini-label" id="labelLossProducts">Loss Products</div>
-                <div class="mini-value warning" id="summaryLossCount">0</div>
-            </div>
-
-            <div class="mini-card">
-                <div class="mini-label" id="labelAvgMargin">Avg Margin %</div>
-                <div class="mini-value" id="summaryAvgMargin">0.00%</div>
-            </div>
-
-            <div class="mini-card">
-                <div class="mini-label" id="labelBestSku">Best SKU</div>
-                <div class="mini-value small" id="summaryBestSku">-</div>
-            </div>
-        </section>
-
-        <section class="panel">
-            <div class="panel-header compact-header">
-                <div>
-                    <h2 id="productsTitle">Saved Products</h2>
-                    <p id="productsSubtitle">
-                        Search, filter, and review all saved pricing decisions.
-                    </p>
-                </div>
-            </div>
-
-            <div class="panel-body compact-body">
-                <div class="table-toolbar no-print compact-toolbar">
-                    <div class="toolbar-left">
-                        <input type="text" id="searchInput" placeholder="Search SKU or note" />
-                    </div>
-
-                    <div class="toolbar-right">
-                        <select id="filterSelect">
-                            <option value="all">All</option>
-                            <option value="loss">Loss</option>
-                            <option value="safe">Safe</option>
-                            <option value="bundle">Bundle Candidates</option>
-                        </select>
-
-                        <button class="btn ghost btn-sm" id="exportBtn" type="button">Export CSV</button>
-                    </div>
-                </div>
-
-                <div class="table-wrap data-grid-wrap">
-                    <table class="products-table compact-table sticky-table">
-                        <thead>
-                            <tr>
-                                <th id="thSku">SKU</th>
-                                <th id="thBuyingPrice">Buying Price</th>
-                                <th id="thCurrentPrice">Current Price</th>
-                                <th id="thMinimumPrice">Minimum Price</th>
-                                <th id="thRecommendedPrice">Recommended Price</th>
-                                <th id="thProfitLoss">Profit / Loss</th>
-                                <th id="thStatus">Status</th>
-                                <th id="thRecommendation">Recommendation</th>
-                                <th class="no-print" id="thActions">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="productsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <section class="panel no-print">
-            <div class="panel-header compact-header">
-                <div>
-                    <h2 id="advancedToolsTitle">Advanced Tools</h2>
-                    <p id="advancedToolsSubtitle">
-                        Optional tools for offers, bulk entry, charts, and reporting.
-                    </p>
-                </div>
-            </div>
-
-            <div class="panel-body compact-body">
-                <div class="tabs">
-                    <div class="tab-buttons compact-tabs">
-                        <button class="tab-btn active" type="button" data-tab="bulkTab" id="bulkTabBtn">Bulk
-                            Import</button>
-                        <button class="tab-btn" type="button" data-tab="offerTab" id="offerTabBtn">Offer
-                            Planner</button>
-                        <button class="tab-btn" type="button" data-tab="chartsTab" id="chartsTabBtn">Charts</button>
-                        <button class="tab-btn" type="button" data-tab="reportTab" id="reportTabBtn">Report</button>
-                    </div>
-
-                    <div class="tab-panels">
-                        <div class="tab-panel active" id="bulkTab">
-                            <label for="bulkPaste" id="bulkPasteLabel">
-                                Paste rows: SKU, Buying Price, Current Selling Price, Packaging, Shipping Shortfall,
-                                Notes
-                            </label>
-                            <textarea id="bulkPaste" rows="6"
-                                placeholder="SKU-1,10,27,0,16.87,Low ticket product&#10;SKU-2,12,79,2,14.00,Better margin candidate"></textarea>
-
-                            <div class="btn-row">
-                                <button class="btn primary btn-sm" id="bulkImportBtn" type="button">Import Rows</button>
-                                <button class="btn ghost btn-sm" id="clearBulkBtn" type="button">Clear</button>
+                            <div class="assumption-item">
+                                <span data-i18n="shippingShortfall">Shipping Shortfall</span>
+                                <strong id="assumptionShippingShortfall">PKR 16.87</strong>
                             </div>
-                        </div>
-
-                        <div class="tab-panel" id="offerTab">
-                            <div class="form-grid two">
-                                <div>
-                                    <label for="offerBasePrice" id="offerBasePriceLabel">Base Price</label>
-                                    <input type="number" id="offerBasePrice" step="0.01" placeholder="e.g. 79" />
-                                </div>
-
-                                <div>
-                                    <label for="offerDiscount" id="offerDiscountLabel">Discount %</label>
-                                    <input type="number" id="offerDiscount" step="0.01" value="10" />
-                                </div>
-
-                                <div>
-                                    <label for="offerVoucher" id="offerVoucherLabel">Extra Voucher %</label>
-                                    <input type="number" id="offerVoucher" step="0.01" value="0" />
-                                </div>
-
-                                <div>
-                                    <label for="offerCoins" id="offerCoinsLabel">Coins %</label>
-                                    <input type="number" id="offerCoins" step="0.01" value="0" />
-                                </div>
-
-                                <div>
-                                    <label for="offerBuyingPrice" id="offerBuyingPriceLabel">Buying Price</label>
-                                    <input type="number" id="offerBuyingPrice" step="0.01" />
-                                </div>
-
-                                <div>
-                                    <label for="offerPackaging" id="offerPackagingLabel">Packaging</label>
-                                    <input type="number" id="offerPackaging" step="0.01" value="0" />
-                                </div>
-                            </div>
-
-                            <div class="btn-row">
-                                <button class="btn success btn-sm" id="offerCalcBtn" type="button">Plan Offer</button>
-                            </div>
-
-                            <div id="offerResult" class="tool-result muted">No offer calculation yet.</div>
-                        </div>
-
-                        <div class="tab-panel" id="chartsTab">
-                            <div class="chart-grid">
-                                <div>
-                                    <h3 class="chart-title" id="profitChartTitle">Profit / Loss by SKU</h3>
-                                    <div id="profitChart" class="chart-box"></div>
-                                </div>
-
-                                <div>
-                                    <h3 class="chart-title" id="revenueChartTitle">Revenue by SKU</h3>
-                                    <div id="revenueChart" class="chart-box"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="tab-panel" id="reportTab">
-                            <div class="table-wrap">
-                                <table class="report-table compact-table">
-                                    <thead>
-                                        <tr>
-                                            <th id="reportThSku">SKU</th>
-                                            <th id="reportThRevenue">Revenue</th>
-                                            <th id="reportThProfitLoss">Profit / Loss</th>
-                                            <th id="reportThMargin">Margin %</th>
-                                            <th id="reportThHealth">Health</th>
-                                            <th id="reportThRecommendation">Recommendation</th>
-                                            <th id="reportThNotes">Notes</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="reportTableBody"></tbody>
-                                </table>
+                            <div class="assumption-item">
+                                <span data-i18n="defaultDiscount">Default Discount</span>
+                                <strong id="assumptionDiscount">10%</strong>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+
+            <!-- RESULT CARDS -->
+            <section class="panel glass result-panel">
+                <div class="panel__header">
+                    <div>
+                        <h2 class="panel__title" data-i18n="resultOverview">Result Overview</h2>
+                        <p class="panel__subtitle" data-i18n="resultOverviewSubtitle">
+                            Instantly understand pricing strategy, current reality, competitor view, and bundle
+                            potential.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="panel__body">
+                    <div class="result-groups">
+                        <div class="result-group">
+                            <h3 class="result-group__title" data-i18n="priceStrategy">Price Strategy</h3>
+                            <div class="metric-grid">
+                                <article class="metric-card glass-soft">
+                                    <span class="metric-card__label" data-i18n="minimumPrice">Minimum Price</span>
+                                    <strong class="metric-card__value" id="minimumPriceValue">PKR 0.00</strong>
+                                </article>
+
+                                <article class="metric-card glass-soft">
+                                    <span class="metric-card__label" data-i18n="recommendedPrice">Recommended
+                                        Price</span>
+                                    <strong class="metric-card__value" id="recommendedPriceValue">PKR 0.00</strong>
+                                </article>
+
+                                <article class="metric-card glass-soft">
+                                    <span class="metric-card__label" data-i18n="discountSafePrice">10% Discount-Safe
+                                        Price</span>
+                                    <strong class="metric-card__value" id="discountSafePriceValue">PKR 0.00</strong>
+                                </article>
+
+                                <article class="metric-card glass-soft">
+                                    <span class="metric-card__label" data-i18n="bundleHint">Bundle Hint</span>
+                                    <strong class="metric-card__value metric-card__value--small"
+                                        id="bundleHintValue">-</strong>
+                                </article>
+                            </div>
+                        </div>
+
+                        <div class="result-group">
+                            <h3 class="result-group__title" data-i18n="currentReality">Current Reality</h3>
+                            <div class="metric-grid">
+                                <article class="metric-card glass-soft">
+                                    <span class="metric-card__label" data-i18n="currentSellingPrice">Current Selling
+                                        Price</span>
+                                    <strong class="metric-card__value" id="currentSellingPriceValue">PKR 0.00</strong>
+                                </article>
+
+                                <article class="metric-card glass-soft">
+                                    <span class="metric-card__label" data-i18n="profitLoss">Profit / Loss</span>
+                                    <strong class="metric-card__value" id="profitLossValue">PKR 0.00</strong>
+                                </article>
+
+                                <article class="metric-card glass-soft">
+                                    <span class="metric-card__label" data-i18n="marginPercent">Margin %</span>
+                                    <strong class="metric-card__value" id="marginPercentValue">0.00%</strong>
+                                </article>
+
+                                <article class="metric-card glass-soft">
+                                    <span class="metric-card__label" data-i18n="status">Status</span>
+                                    <strong class="metric-card__value metric-card__value--small"
+                                        id="statusValue">Safe</strong>
+                                </article>
+                            </div>
+                        </div>
+
+                        <div class="result-group">
+                            <h3 class="result-group__title" data-i18n="competitorView">Competitor View</h3>
+                            <div class="metric-grid">
+                                <article class="metric-card glass-soft">
+                                    <span class="metric-card__label" data-i18n="competitorPerPiece">Competitor Per
+                                        Piece</span>
+                                    <strong class="metric-card__value" id="competitorPerPieceValue">PKR 0.00</strong>
+                                </article>
+
+                                <article class="metric-card glass-soft">
+                                    <span class="metric-card__label" data-i18n="yourPerPiece">Your Per Piece</span>
+                                    <strong class="metric-card__value" id="yourPerPieceValue">PKR 0.00</strong>
+                                </article>
+
+                                <article class="metric-card glass-soft">
+                                    <span class="metric-card__label" data-i18n="priceGap">Gap</span>
+                                    <strong class="metric-card__value" id="priceGapValue">PKR 0.00</strong>
+                                </article>
+
+                                <article class="metric-card glass-soft">
+                                    <span class="metric-card__label" data-i18n="marketPosition">Market Position</span>
+                                    <strong class="metric-card__value metric-card__value--small"
+                                        id="marketPositionValue">-</strong>
+                                </article>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RECENT PRODUCTS PREVIEW -->
+            <section class="panel glass recent-panel" id="recentSection">
+                <div class="panel__header">
+                    <div>
+                        <h2 class="panel__title" data-i18n="recentProducts">Recent Products</h2>
+                        <p class="panel__subtitle" data-i18n="recentProductsSubtitle">
+                            Review your latest saved products quickly. Open full Saved page for all items.
+                        </p>
+                    </div>
+
+                    <a href="saved.html" class="text-link" data-i18n="viewAllSaved">View All</a>
+                </div>
+
+                <div class="panel__body">
+                    <div class="recent-products-list" id="recentProductsList">
+                        <article class="recent-card glass-soft">
+                            <div class="recent-card__top">
+                                <strong class="recent-card__name">PC Silver Nosepin</strong>
+                                <span class="badge badge--warning">Risky</span>
+                            </div>
+                            <div class="recent-card__meta">
+                                <span>Buying Price PKR 63</span>
+                                <span>Profit PKR -4</span>
+                            </div>
+                            <p class="recent-card__note">Commission + shipping high hai</p>
+                        </article>
+
+                        <article class="recent-card glass-soft">
+                            <div class="recent-card__top">
+                                <strong class="recent-card__name">LED Desk Lamp</strong>
+                                <span class="badge badge--success">Safe</span>
+                            </div>
+                            <div class="recent-card__meta">
+                                <span>Buying Price PKR 180</span>
+                                <span>Profit PKR +21</span>
+                            </div>
+                            <p class="recent-card__note">Healthy margin</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CHARTS PREVIEW -->
+            <section class="panel glass chart-panel" id="chartsSection">
+                <div class="panel__header">
+                    <div>
+                        <h2 class="panel__title" data-i18n="chartInsights">Chart Insights</h2>
+                        <p class="panel__subtitle" data-i18n="chartInsightsSubtitle">
+                            Quick visual understanding of profit, revenue, and pricing performance.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="panel__body">
+                    <div class="chart-grid">
+                        <div class="chart-card glass-soft">
+                            <div class="chart-card__header">
+                                <h3 data-i18n="profitLossBySku">Profit / Loss by SKU</h3>
+                            </div>
+                            <div class="chart-placeholder" id="profitChart">
+                                <div class="chart-bar">
+                                    <span class="chart-bar__label">PC Silver Nosepin</span>
+                                    <div class="chart-bar__track">
+                                        <div class="chart-bar__fill chart-bar__fill--negative" style="width: 35%;">
+                                        </div>
+                                    </div>
+                                    <span class="chart-bar__value">-4</span>
+                                </div>
+
+                                <div class="chart-bar">
+                                    <span class="chart-bar__label">LED Desk Lamp</span>
+                                    <div class="chart-bar__track">
+                                        <div class="chart-bar__fill chart-bar__fill--positive" style="width: 62%;">
+                                        </div>
+                                    </div>
+                                    <span class="chart-bar__value">+21</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chart-card glass-soft">
+                            <div class="chart-card__header">
+                                <h3 data-i18n="revenueBySku">Revenue by SKU</h3>
+                            </div>
+                            <div class="chart-placeholder" id="revenueChart">
+                                <div class="chart-bar">
+                                    <span class="chart-bar__label">PC Silver Nosepin</span>
+                                    <div class="chart-bar__track">
+                                        <div class="chart-bar__fill chart-bar__fill--revenue" style="width: 48%;"></div>
+                                    </div>
+                                    <span class="chart-bar__value">63</span>
+                                </div>
+
+                                <div class="chart-bar">
+                                    <span class="chart-bar__label">LED Desk Lamp</span>
+                                    <div class="chart-bar__track">
+                                        <div class="chart-bar__fill chart-bar__fill--revenue" style="width: 82%;"></div>
+                                    </div>
+                                    <span class="chart-bar__value">245</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- REPORT PREVIEW -->
+            <section class="panel glass report-panel" id="reportSection">
+                <div class="panel__header">
+                    <div>
+                        <h2 class="panel__title" data-i18n="reportPreview">Report Preview</h2>
+                        <p class="panel__subtitle" data-i18n="reportPreviewSubtitle">
+                            Print-friendly summary of current pricing decisions.
+                        </p>
+                    </div>
+
+                    <button class="btn btn--ghost" id="printReportBtn" type="button" data-i18n="printReport">
+                        Print Report
+                    </button>
+                </div>
+
+                <div class="panel__body">
+                    <div class="report-preview glass-soft">
+                        <div class="report-preview__row report-preview__row--head">
+                            <span data-i18n="sku">SKU</span>
+                            <span data-i18n="price">Price</span>
+                            <span data-i18n="profitLoss">Profit / Loss</span>
+                            <span data-i18n="status">Status</span>
+                        </div>
+
+                        <div class="report-preview__row">
+                            <span>PC Silver Nosepin</span>
+                            <span>PKR 72</span>
+                            <span class="text-danger">PKR -4</span>
+                            <span>Risky</span>
+                        </div>
+
+                        <div class="report-preview__row">
+                            <span>LED Desk Lamp</span>
+                            <span>PKR 245</span>
+                            <span class="text-success">PKR +21</span>
+                            <span>Safe</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- BOTTOM APP NAV -->
+        <nav class="bottom-nav glass" aria-label="Bottom Navigation">
+            <a href="index.html" class="bottom-nav__item bottom-nav__item--active">
+                <span class="bottom-nav__icon">⌂</span>
+                <span class="bottom-nav__label" data-i18n="navCalculator">Calculator</span>
+            </a>
+
+            <a href="saved.html" class="bottom-nav__item">
+                <span class="bottom-nav__icon">♡</span>
+                <span class="bottom-nav__label" data-i18n="navSaved">Saved</span>
+            </a>
+
+            <a href="bulk.html" class="bottom-nav__item">
+                <span class="bottom-nav__icon">▣</span>
+                <span class="bottom-nav__label" data-i18n="navBulk">Bulk</span>
+            </a>
+        </nav>
+
+        <footer class="app-footer">
+            <span data-i18n="poweredBy">Powered by</span> <strong>vweb.dev</strong>
+        </footer>
     </div>
-
-    <!-- Slide Drawer -->
-    <div class="drawer-shell no-print">
-        <div id="productDetailArea" class="product-detail-area"></div>
-    </div>
-
-    <footer class="site-footer">
-        <span id="footerPoweredBy">Powered by vweb.dev</span>
-    </footer>
 
     <script src="assets/js/config.js"></script>
     <script src="assets/js/storage.js"></script>
