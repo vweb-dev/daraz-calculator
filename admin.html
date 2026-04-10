@@ -1,164 +1,173 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" data-lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Daraz Calculator Admin</title>
-    <link rel="stylesheet" href="assets/css/app.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Daraz Calculator Pro - Admin</title>
+  <link rel="stylesheet" href="assets/css/app.css" />
 </head>
-
 <body>
-    <div class="wrap">
-        <div id="gateBox" class="panel gate-panel">
-            <div class="panel-header">
-                <h2 id="adminGateTitle">Admin Access</h2>
-                <p id="adminGateSubtitle">Enter password to continue.</p>
-            </div>
+  <div class="app-shell">
+    <header class="topbar glass">
+      <div class="topbar__left">
+        <div class="brand-block">
+          <h1 class="app-title">Admin Settings</h1>
+          <p class="app-subtitle">
+            Update pricing assumptions used by the calculator.
+          </p>
+        </div>
+      </div>
 
-            <div class="panel-body">
-                <div class="form-grid">
-                    <div>
-                        <label for="adminPassword" id="adminPasswordLabel">Password</label>
-                        <input type="password" id="adminPassword" placeholder="Enter admin password" />
-                    </div>
-                </div>
+      <div class="topbar__right">
+        <button class="lang-toggle" id="langToggle" type="button" aria-label="Toggle language">
+          <span class="lang-toggle__item lang-toggle__item--active">EN</span>
+          <span class="lang-toggle__divider"></span>
+          <span class="lang-toggle__item">RU</span>
+        </button>
+      </div>
+    </header>
 
-                <div class="btn-row">
-                    <button class="btn primary" id="unlockBtn">Unlock</button>
-                    <a class="btn ghost" href="index.html" id="backToAppBtn">Back to App</a>
-                </div>
-
-                <div class="footer-note" id="adminGateNote">
-                    This page is for managing calculator assumptions and defaults.
-                </div>
-            </div>
+    <main class="main-content">
+      <!-- LOGIN GATE -->
+      <section class="panel glass" id="adminLoginPanel">
+        <div class="panel__header">
+          <div>
+            <h2 class="panel__title">Admin Access</h2>
+            <p class="panel__subtitle">Enter password to edit system assumptions.</p>
+          </div>
         </div>
 
-        <div id="adminApp" style="display:none;">
-            <div class="hero">
-                <div class="hero-left">
-                    <h1 id="adminTitle">Admin Settings</h1>
-                    <p id="adminSubtitle">
-                        Manage default Daraz assumptions, language, and pricing behavior.
-                    </p>
-                </div>
-
-                <div class="hero-right">
-                    <a class="btn ghost" href="index.html" id="goToCalculatorBtn">Calculator</a>
-                    <button class="btn primary" id="saveSettingsBtn">Save Settings</button>
-                    <button class="btn warn" id="lockBtn">Lock</button>
-                    <button class="btn danger" id="resetSettingsBtn">Reset Settings</button>
-                </div>
+        <div class="panel__body">
+          <div class="form-grid">
+            <div class="field field--full">
+              <label for="adminPasswordInput">Password</label>
+              <input
+                id="adminPasswordInput"
+                type="password"
+                placeholder="Enter admin password"
+              />
             </div>
+          </div>
 
-            <div class="grid-admin">
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2 id="variableRatesTitle">Variable Rates (%)</h2>
-                        <p id="variableRatesSubtitle">
-                            Percentage-based Daraz charges.
-                        </p>
-                    </div>
-
-                    <div class="panel-body">
-                        <div class="form-grid">
-                            <div>
-                                <label for="commissionRate" id="commissionRateLabel">Commission %</label>
-                                <input type="number" id="commissionRate" step="0.01" />
-                            </div>
-
-                            <div>
-                                <label for="paymentFeeRate" id="paymentFeeRateLabel">Payment Fee %</label>
-                                <input type="number" id="paymentFeeRate" step="0.01" />
-                            </div>
-
-                            <div>
-                                <label for="freeShippingRate" id="freeShippingRateLabel">Free Shipping Fee %</label>
-                                <input type="number" id="freeShippingRate" step="0.01" />
-                            </div>
-
-                            <div>
-                                <label for="coinsRate" id="coinsRateLabel">Coins %</label>
-                                <input type="number" id="coinsRate" step="0.01" />
-                            </div>
-
-                            <div>
-                                <label for="voucherRate" id="voucherRateLabel">Voucher %</label>
-                                <input type="number" id="voucherRate" step="0.01" />
-                            </div>
-
-                            <div>
-                                <label for="incomeTaxRate" id="incomeTaxRateLabel">Income Tax %</label>
-                                <input type="number" id="incomeTaxRate" step="0.01" />
-                            </div>
-
-                            <div>
-                                <label for="salesTaxRate" id="salesTaxRateLabel">Sales Tax %</label>
-                                <input type="number" id="salesTaxRate" step="0.01" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2 id="fixedSettingsTitle">Fixed & Default Settings</h2>
-                        <p id="fixedSettingsSubtitle">
-                            Pricing defaults and behavior rules.
-                        </p>
-                    </div>
-
-                    <div class="panel-body">
-                        <div class="form-grid">
-                            <div>
-                                <label for="handlingFee" id="handlingFeeLabel">Handling Fee</label>
-                                <input type="number" id="handlingFee" step="0.01" />
-                            </div>
-
-                            <div>
-                                <label for="defaultShippingShortfall" id="defaultShippingShortfallLabel">Default
-                                    Shipping Shortfall</label>
-                                <input type="number" id="defaultShippingShortfall" step="0.01" />
-                            </div>
-
-                            <div>
-                                <label for="defaultDiscountRate" id="defaultDiscountRateLabel">Default Discount
-                                    %</label>
-                                <input type="number" id="defaultDiscountRate" step="0.01" />
-                            </div>
-
-                            <div>
-                                <label for="defaultTargetMarginRate" id="defaultTargetMarginRateLabel">Default Target
-                                    Margin %</label>
-                                <input type="number" id="defaultTargetMarginRate" step="0.01" />
-                            </div>
-
-                            <div>
-                                <label for="defaultLanguage" id="defaultLanguageLabel">Default Language</label>
-                                <select id="defaultLanguage">
-                                    <option value="en">English</option>
-                                    <option value="ru">Roman Urdu</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="footer-note" id="settingsNote">
-                            Public calculator page uses these saved defaults automatically.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <footer class="site-footer">
-                <span id="footerPoweredBy">Powered by vweb.dev</span>
-            </footer>
+          <div class="action-row">
+            <button class="btn btn--primary" id="adminLoginBtn" type="button">Unlock Admin</button>
+            <a href="index.html" class="btn btn--ghost">Back to Calculator</a>
+          </div>
         </div>
-    </div>
+      </section>
 
-    <script src="assets/js/config.js"></script>
-    <script src="assets/js/storage.js"></script>
-    <script src="assets/js/admin-app.js"></script>
+      <!-- ADMIN PANEL -->
+      <section class="panel glass hidden" id="adminSettingsPanel">
+        <div class="panel__header">
+          <div>
+            <h2 class="panel__title">Pricing Assumptions</h2>
+            <p class="panel__subtitle">
+              These values control safe price, recommended price, and profit calculations.
+            </p>
+          </div>
+        </div>
+
+        <div class="panel__body">
+          <div class="form-grid form-grid--main">
+            <div class="field">
+              <label for="commissionRateInput">Commission Rate (%)</label>
+              <input id="commissionRateInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="paymentFeeRateInput">Payment Fee Rate (%)</label>
+              <input id="paymentFeeRateInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="freeShippingRateInput">Free Shipping Rate (%)</label>
+              <input id="freeShippingRateInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="coinsRateInput">Coins Rate (%)</label>
+              <input id="coinsRateInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="voucherRateInput">Voucher Rate (%)</label>
+              <input id="voucherRateInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="incomeTaxRateInput">Income Tax Rate (%)</label>
+              <input id="incomeTaxRateInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="salesTaxRateInput">Sales Tax Rate (%)</label>
+              <input id="salesTaxRateInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="handlingFeeInput">Handling Fee</label>
+              <input id="handlingFeeInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="shippingShortfallInput">Shipping Shortfall</label>
+              <input id="shippingShortfallInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="defaultDiscountRateInput">Default Discount Rate (%)</label>
+              <input id="defaultDiscountRateInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field">
+              <label for="defaultTargetMarginRateInput">Default Target Margin Rate (%)</label>
+              <input id="defaultTargetMarginRateInput" type="number" inputmode="decimal" step="0.01" />
+            </div>
+
+            <div class="field field--full">
+              <label for="bundleQuantitiesInput">Bundle Quantities (comma separated)</label>
+              <input
+                id="bundleQuantitiesInput"
+                type="text"
+                placeholder="e.g. 1,2,3,5,10,12"
+              />
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn btn--primary" id="saveAdminSettingsBtn" type="button">Save Settings</button>
+            <button class="btn btn--ghost" id="resetAdminSettingsBtn" type="button">Reset Defaults</button>
+            <button class="btn btn--ghost" id="adminLogoutBtn" type="button">Lock Admin</button>
+            <a href="index.html" class="btn btn--success">Open Calculator</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav glass" aria-label="Bottom Navigation">
+      <a href="index.html" class="bottom-nav__item">
+        <span class="bottom-nav__icon">⌂</span>
+        <span class="bottom-nav__label">Calculator</span>
+      </a>
+
+      <a href="saved.html" class="bottom-nav__item">
+        <span class="bottom-nav__icon">♡</span>
+        <span class="bottom-nav__label">Saved</span>
+      </a>
+
+      <a href="bulk.html" class="bottom-nav__item">
+        <span class="bottom-nav__icon">▣</span>
+        <span class="bottom-nav__label">Bulk</span>
+      </a>
+    </nav>
+
+    <footer class="app-footer">
+      Powered by <strong>vweb.dev</strong>
+    </footer>
+  </div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/admin-app.js"></script>
 </body>
-
 </html>
