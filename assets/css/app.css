@@ -930,3 +930,20 @@ textarea:focus {
         background: #fff !important;
     }
 }
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:120;
+  background:rgba(2,8,20,.68);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+
+.modal-panel{
+  width:100%;
+  max-width:560px;
+  border-radius:26px;
+  overflow:hidden;
+}
