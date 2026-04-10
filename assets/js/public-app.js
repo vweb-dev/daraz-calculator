@@ -1,961 +1,573 @@
-(() => {
-    const { defaultProduct } = window.APP_CONFIG;
-    const {
-        clone,
-        uid,
-        loadSettings,
-        saveSettings,
-        loadProducts,
-        saveProducts
-    } = window.StorageUtils;
+(function () {
+  const { translations, defaults } = window.APP_CONFIG;
+  const Storage = window.AppStorage;
+  const Calc = window.AppCalc;
 
-    const {
-        num,
-        money,
-        round2,
-        escapeHtml,
-        t,
-        calculateProduct,
-        getHealth,
-        getHealthLabel,
-        getRecommendation,
-        planOffer
-    } = window.CalcUtils;
+  let currentLang = Storage.getLanguage() || defaults.language;
+  let settings = Storage.getSettings();
 
-    let settings = loadSettings();
-    let products = loadProducts();
-    let selectedProductId = null;
-    let lastQuickResult = null;
+  // ---------- DOM HELPERS ----------
 
-    function qs(id) {
-        return document.getElementById(id);
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function qsa(selector) {
+    return Array.from(document.querySelectorAll(selector));
+  }
+
+  function setText(id, value) {
+    const el = $(id);
+    if (el) el.textContent = value;
+  }
+
+  function setHTML(id, value) {
+    const el = $(id);
+    if (el) el.innerHTML = value;
+  }
+
+  function setValue(id, value) {
+    const el = $(id);
+    if (el) el.value = value;
+  }
+
+  function getValue(id) {
+    const el = $(id);
+    return el ? el.value : "";
+  }
+
+  function escapeHtml(str) {
+    return String(str ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  // ---------- I18N ----------
+
+  function t(key) {
+    const langSet = translations[currentLang] || translations.en;
+    return langSet[key] || translations.en[key] || key;
+  }
+
+  function applyTranslations() {
+    document.documentElement.setAttribute("lang", currentLang === "ru" ? "ur" : "en");
+    document.documentElement.setAttribute("data-lang", currentLang);
+
+    qsa("[data-i18n]").forEach((el) => {
+      const key = el.getAttribute("data-i18n");
+      el.textContent = t(key);
+    });
+
+    qsa("[data-i18n-placeholder]").forEach((el) => {
+      const key = el.getAttribute("data-i18n-placeholder");
+      el.setAttribute("placeholder", t(key));
+    });
+
+    const toggle = $("langToggle");
+    if (toggle) {
+      const items = toggle.querySelectorAll(".lang-toggle__item");
+      if (items.length >= 2) {
+        items[0].classList.toggle("lang-toggle__item--active", currentLang === "en");
+        items[1].classList.toggle("lang-toggle__item--active", currentLang === "ru");
+      }
+    }
+  }
+
+  function toggleLanguage() {
+    currentLang = currentLang === "en" ? "ru" : "en";
+    Storage.setLanguage(currentLang);
+    applyTranslations();
+    runCalculation();
+    renderRecentProducts();
+  }
+
+  // ---------- FORM ----------
+
+  function getFormData() {
+    return {
+      sku: getValue("skuInput").trim(),
+      buyingPrice: getValue("buyingPriceInput"),
+      packagingCost: getValue("packagingCostInput"),
+      currentSellingPrice: getValue("currentSellingPriceInput"),
+      bundleQty: getValue("bundleQtyInput"),
+      competitorTotalPrice: getValue("competitorTotalPriceInput"),
+      competitorQty: getValue("competitorQtyInput")
+    };
+  }
+
+  function setFormData(data = {}) {
+    setValue("skuInput", data.sku ?? "");
+    setValue("buyingPriceInput", data.buyingPrice ?? "");
+    setValue("packagingCostInput", data.packagingCost ?? 0);
+    setValue("currentSellingPriceInput", data.currentSellingPrice ?? "");
+    setValue("bundleQtyInput", data.bundleQty ?? 12);
+    setValue("competitorTotalPriceInput", data.competitorTotalPrice ?? "");
+    setValue("competitorQtyInput", data.competitorQty ?? "");
+  }
+
+  function clearForm() {
+    setFormData(defaults.quickForm);
+    runCalculation();
+  }
+
+  // ---------- ASSUMPTIONS ----------
+
+  function renderAssumptions() {
+    settings = Storage.getSettings();
+
+    setText("assumptionCommission", `${Calc.round2(settings.commissionRate).toFixed(2)}%`);
+    setText("assumptionHandling", Calc.formatCurrency(settings.handlingFee));
+    setText("assumptionShippingShortfall", Calc.formatCurrency(settings.shippingShortfall));
+    setText("assumptionDiscount", `${Calc.round2(settings.defaultDiscountRate).toFixed(2)}%`);
+  }
+
+  function toggleAssumptions() {
+    const box = $("assumptionsBox");
+    if (!box) return;
+    box.classList.toggle("hidden");
+  }
+
+  // ---------- HERO + RESULTS ----------
+
+  function getStatusLabel(healthStatus) {
+    if (!healthStatus) return t("status");
+
+    if (currentLang === "ru") {
+      return healthStatus.labelRu;
+    }
+    return healthStatus.labelEn;
+  }
+
+  function renderHero(result) {
+    const badge = $("heroHealthBadge");
+    if (badge) {
+      badge.textContent = getStatusLabel(result.healthStatus);
+      badge.className = `hero-status__badge badge ${result.healthStatus.className}`;
     }
 
-    function persist() {
-        saveSettings(settings);
-        saveProducts(products);
-    }
+    setText("heroProfitValue", result.formatted.profitLoss);
+    setHTML(
+      "heroRecommendation",
+      `<span>${escapeHtml(result.recommendation.title)} — ${escapeHtml(result.recommendation.message)}</span>`
+    );
 
-    function syncLanguageButtons() {
-        const isEn = (settings.defaultLanguage || "en") === "en";
-        qs("langEnBtn").classList.toggle("active", isEn);
-        qs("langRuBtn").classList.toggle("active", !isEn);
-    }
+    const whyListHtml = (result.reasons || [])
+      .map((line) => `<li>${escapeHtml(line)}</li>`)
+      .join("");
 
-    function setLanguage(lang) {
-        settings.defaultLanguage = lang;
-        persist();
-        applyStaticTranslations();
-        renderAll();
-    }
+    setHTML("heroWhyBox", `<ul class="why-list">${whyListHtml}</ul>`);
+  }
 
-    function getBundleQuantities(maxQty) {
-        const cap = Math.max(1, Math.min(12, parseInt(maxQty, 10) || 12));
-        const preferred = [1, 2, 3, 4, 5, 6, 8, 10, 12];
-        return preferred.filter(q => q <= cap);
-    }
+  function renderOverview(result) {
+    setText("minimumPriceValue", result.formatted.minimumPrice);
+    setText("recommendedPriceValue", result.formatted.recommendedPrice);
+    setText("discountSafePriceValue", result.formatted.discountSafePrice);
+    setText("bundleHintValue", result.bundleHint);
 
-    function getCompetitorPerPiece(totalPrice, qty) {
-        const total = num(totalPrice);
-        const quantity = Math.max(0, parseInt(qty, 10) || 0);
-        if (!total || !quantity) return 0;
-        return total / quantity;
-    }
+    setText("currentSellingPriceValue", result.formatted.currentSellingPrice || Calc.formatCurrency(result.currentSellingPrice));
+    setText("profitLossValue", result.formatted.profitLoss);
+    setText("marginPercentValue", result.formatted.marginPercent);
+    setText("statusValue", getStatusLabel(result.healthStatus));
 
-    function getYourPerPiece(currentSellingPrice) {
-        return num(currentSellingPrice);
-    }
+    setText("competitorPerPieceValue", result.formatted.competitorPerPiece);
+    setText("yourPerPieceValue", result.formatted.yourPerPiece);
+    setText("priceGapValue", result.formatted.priceGap);
+    setText("marketPositionValue", result.marketPosition);
+  }
 
-    function getCompetitorStrategy(product, result, competitorPerPiece) {
-        const cpp = num(competitorPerPiece);
-        if (!cpp) return "-";
+  // ---------- RECENT PRODUCTS ----------
 
-        const minimum = num(result.minimumPrice);
-        const recommended = num(result.recommendedPrice);
-        const current = num(product.currentSellingPrice);
-        const isEn = (settings.defaultLanguage || "en") === "en";
+  function getRecentLimit() {
+    return 5;
+  }
 
-        if (cpp < minimum) {
-            if (current > cpp) {
-                return isEn
-                    ? "Do Not Match. Better as Bundle."
-                    : "Match mat karo. Bundle better hai.";
-            }
-            return isEn
-                ? "Do Not Match Competitor."
-                : "Competitor ko match mat karo.";
-        }
+  function mapProductToForm(product) {
+    return {
+      sku: product.sku || "",
+      buyingPrice: product.buyingPrice ?? "",
+      packagingCost: product.packagingCost ?? 0,
+      currentSellingPrice: product.currentSellingPrice ?? "",
+      bundleQty: product.bundleQty ?? 12,
+      competitorTotalPrice: product.competitorTotalPrice ?? "",
+      competitorQty: product.competitorQty ?? ""
+    };
+  }
 
-        if (cpp >= minimum && cpp < recommended) {
-            return isEn
-                ? "Can compete, but risky."
-                : "Compete ho sakta hai, lekin risky hai.";
-        }
+  function loadProductIntoForm(productId) {
+    const products = Storage.getProducts();
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
 
-        if (cpp >= recommended) {
-            return isEn
-                ? "Healthy price position."
-                : "Price position healthy hai.";
-        }
+    setFormData(mapProductToForm(product));
+    runCalculation();
 
-        if (current < cpp) {
-            return isEn
-                ? "Already below competitor."
-                : "Tum already competitor se neeche ho.";
-        }
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  }
 
-        return isEn
-            ? "Compete with value, not price."
-            : "Price ke bajaye value par compete karo.";
-    }
+  function renderRecentProducts() {
+    const wrap = $("recentProductsList");
+    if (!wrap) return;
 
-    function buildBundleComparison(product, maxQty) {
-        const quantities = getBundleQuantities(maxQty);
+    const products = Storage.getRecentProducts(getRecentLimit());
 
-        return quantities.map(qty => {
-            const bundleProduct = {
-                ...product,
-                buyingPrice: num(product.buyingPrice) * qty,
-                currentSellingPrice: num(product.currentSellingPrice) * qty
-            };
-
-            const result = calculateProduct(bundleProduct, settings);
-
-            return {
-                qty,
-                price: bundleProduct.currentSellingPrice,
-                profit: result.estimatedProfit,
-                margin: result.estimatedMarginPercent
-            };
-        });
-    }
-
-    function badgeClassFromHealth(healthKey) {
-        if (healthKey === "unsafe") return "badge danger";
-        if (healthKey === "borderline") return "badge warning";
-        return "badge success";
-    }
-
-    function badgeClassFromRecommendation(recommendationText) {
-        const text = String(recommendationText || "").toLowerCase();
-        if (
-            text.includes("do not sell") ||
-            text.includes("mat becho") ||
-            text.includes("raise price") ||
-            text.includes("price barhao")
-        ) return "badge danger";
-
-        if (
-            text.includes("risky") ||
-            text.includes("bundle")
-        ) return "badge warning";
-
-        return "badge success";
-    }
-
-    function applyStaticTranslations() {
-        const isEn = (settings.defaultLanguage || "en") === "en";
-
-        qs("appTitle").textContent = t(settings, "appTitle");
-        qs("appSubtitle").textContent = isEn
-            ? "Enter buying price and instantly understand safe selling prices, current loss, competitor pressure, and bundle potential."
-            : "Buying price dalo aur foran samjho safe selling prices, current nuksan, competitor pressure, aur bundle potential.";
-
-        qs("adminLink").textContent = t(settings, "admin");
-        qs("printBtn").textContent = t(settings, "printReport");
-
-        qs("quickCalculatorTitle").textContent = isEn ? "Quick Calculator" : "Quick Calculator";
-        qs("quickCalculatorSubtitle").textContent = isEn
-            ? "Enter buying price and instantly see safe prices, current loss, competitor per-piece gap, and bundle result."
-            : "Buying price dalo aur foran dekh lo safe prices, current nuksan, competitor per-piece gap, aur bundle result.";
-
-        qs("quickSkuLabel").textContent = t(settings, "sku");
-        qs("quickBuyingPriceLabel").textContent = t(settings, "buyingPrice");
-        qs("quickPackagingCostLabel").textContent = t(settings, "packagingCost");
-        qs("quickCurrentSellingPriceLabel").textContent = t(settings, "currentSellingPrice");
-        qs("quickBundleMaxQtyLabel").textContent = isEn ? "Max Bundle Qty" : "Max Bundle Qty";
-        qs("quickCompetitorTotalPriceLabel").textContent = isEn ? "Competitor Total Price" : "Competitor Total Price";
-        qs("quickCompetitorQtyLabel").textContent = isEn ? "Competitor Quantity" : "Competitor Quantity";
-
-        qs("quickCalculateBtn").textContent = isEn ? "Calculate Now" : "Abhi Hisaab Karo";
-        qs("quickSaveBtn").textContent = isEn ? "Save Product" : "Product Save Karo";
-        qs("quickClearBtn").textContent = isEn ? "Clear" : "Clear";
-
-        qs("priceStrategyGroupTitle").textContent = isEn ? "Price Strategy" : "Price Strategy";
-        qs("minimumPriceLabel").textContent = t(settings, "minimumPrice");
-        qs("recommendedPriceLabel").textContent = t(settings, "recommendedPrice");
-        qs("discountSafePriceLabel").textContent = t(settings, "discountSafePrice");
-
-        qs("currentRealityGroupTitle").textContent = isEn ? "Current Reality" : "Current Reality";
-        qs("currentPriceResultLabel").textContent = t(settings, "currentSellingPrice");
-        qs("profitLossLabel").textContent = t(settings, "profitLoss");
-        qs("marginResultLabel").textContent = t(settings, "margin");
-
-        qs("competitorGroupTitle").textContent = isEn ? "Competitor View" : "Competitor View";
-        qs("competitorPerPieceLabel").textContent = isEn ? "Competitor Per Piece" : "Competitor Per Piece";
-        qs("yourPerPieceLabel").textContent = isEn ? "Your Per Piece" : "Your Per Piece";
-        qs("priceGapLabel").textContent = isEn ? "Per Piece Gap" : "Per Piece Gap";
-        qs("competitorStrategyLabel").textContent = isEn ? "Suggested Action" : "Suggested Action";
-
-        qs("statusGroupTitle").textContent = isEn ? "Decision" : "Decision";
-        qs("healthStatusLabel").textContent = isEn ? "Health Status" : "Health Status";
-        qs("recommendationLabel").textContent = t(settings, "recommendation");
-
-        qs("bundleGroupTitle").textContent = t(settings, "bundleComparison");
-        qs("bundleThQty").textContent = isEn ? "Bundle" : "Bundle";
-        qs("bundleThPrice").textContent = isEn ? "Price" : "Price";
-        qs("bundleThProfit").textContent = t(settings, "profitLoss");
-        qs("bundleThStatus").textContent = isEn ? "Status" : "Status";
-
-        qs("labelTotalProducts").textContent = t(settings, "totalProducts");
-        qs("labelLossProducts").textContent = isEn ? "Loss Products" : "Loss Products";
-        qs("labelAvgMargin").textContent = t(settings, "avgMargin");
-        qs("labelBestSku").textContent = t(settings, "bestSku");
-
-        qs("productsTitle").textContent = isEn ? "Saved Products" : "Saved Products";
-        qs("productsSubtitle").textContent = isEn
-            ? "Search, filter, and review all saved pricing decisions."
-            : "Search, filter, aur saved pricing decisions review karo.";
-
-        qs("searchInput").placeholder = isEn ? "Search SKU or note" : "SKU ya note search karo";
-
-        const filterSelect = qs("filterSelect");
-        filterSelect.options[0].text = isEn ? "All" : "Sab";
-        filterSelect.options[1].text = isEn ? "Loss" : "Loss";
-        filterSelect.options[2].text = isEn ? "Safe" : "Safe";
-        filterSelect.options[3].text = isEn ? "Bundle Candidates" : "Bundle Candidates";
-
-        qs("exportBtn").textContent = t(settings, "exportCsv");
-
-        qs("thSku").textContent = "SKU";
-        qs("thBuyingPrice").textContent = t(settings, "buyingPrice");
-        qs("thCurrentPrice").textContent = isEn ? "Current Price" : "Current Price";
-        qs("thMinimumPrice").textContent = t(settings, "minimumPrice");
-        qs("thRecommendedPrice").textContent = t(settings, "recommendedPrice");
-        qs("thProfitLoss").textContent = t(settings, "profitLoss");
-        qs("thStatus").textContent = isEn ? "Status" : "Status";
-        qs("thRecommendation").textContent = t(settings, "recommendation");
-        qs("thActions").textContent = isEn ? "Actions" : "Actions";
-
-        qs("advancedToolsTitle").textContent = isEn ? "Advanced Tools" : "Advanced Tools";
-        qs("advancedToolsSubtitle").textContent = isEn
-            ? "Optional tools for offers, bulk entry, charts, and reporting."
-            : "Offers, bulk entry, charts, aur reporting ke optional tools.";
-
-        qs("bulkTabBtn").textContent = isEn ? "Bulk Import" : "Bulk Import";
-        qs("offerTabBtn").textContent = isEn ? "Offer Planner" : "Offer Planner";
-        qs("chartsTabBtn").textContent = t(settings, "charts");
-        qs("reportTabBtn").textContent = isEn ? "Report" : "Report";
-
-        qs("bulkPasteLabel").textContent = isEn
-            ? "Paste rows: SKU, Buying Price, Current Selling Price, Packaging, Shipping Shortfall, Notes"
-            : "Rows paste karo: SKU, Buying Price, Current Selling Price, Packaging, Shipping Shortfall, Notes";
-
-        qs("bulkImportBtn").textContent = isEn ? "Import Rows" : "Rows Import Karo";
-        qs("clearBulkBtn").textContent = isEn ? "Clear" : "Clear";
-
-        qs("offerBasePriceLabel").textContent = isEn ? "Base Price" : "Base Price";
-        qs("offerDiscountLabel").textContent = isEn ? "Discount %" : "Discount %";
-        qs("offerVoucherLabel").textContent = isEn ? "Extra Voucher %" : "Extra Voucher %";
-        qs("offerCoinsLabel").textContent = isEn ? "Coins %" : "Coins %";
-        qs("offerBuyingPriceLabel").textContent = t(settings, "buyingPrice");
-        qs("offerPackagingLabel").textContent = isEn ? "Packaging" : "Packaging";
-        qs("offerCalcBtn").textContent = t(settings, "planOffer");
-
-        if (!qs("offerResult").dataset.filled) {
-            qs("offerResult").textContent = t(settings, "noOfferCalcYet");
-        }
-
-        qs("profitChartTitle").textContent = isEn ? "Profit / Loss by SKU" : "SKU ke hisab se Munafa / Nuksan";
-        qs("revenueChartTitle").textContent = isEn ? "Revenue by SKU" : "SKU ke hisab se Revenue";
-
-        qs("reportThSku").textContent = "SKU";
-        qs("reportThRevenue").textContent = t(settings, "revenueBase");
-        qs("reportThProfitLoss").textContent = t(settings, "profitLoss");
-        qs("reportThMargin").textContent = t(settings, "margin");
-        qs("reportThHealth").textContent = isEn ? "Health" : "Status";
-        qs("reportThRecommendation").textContent = t(settings, "recommendation");
-        qs("reportThNotes").textContent = t(settings, "notes");
-
-        qs("footerPoweredBy").textContent = t(settings, "poweredBy");
-
-        syncLanguageButtons();
-    }
-
-    function resetQuickCalculator() {
-        qs("quickSku").value = "";
-        qs("quickBuyingPrice").value = "";
-        qs("quickPackagingCost").value = "0";
-        qs("quickCurrentSellingPrice").value = "";
-        qs("quickCompetitorTotalPrice").value = "";
-        qs("quickCompetitorQty").value = "";
-        qs("quickBundleMaxQty").value = "12";
-        lastQuickResult = null;
-        renderQuickResults();
-    }
-
-    function getQuickProduct() {
-        const p = clone(defaultProduct);
-        p.id = uid();
-        p.mode = "pricing";
-        p.sku = qs("quickSku").value.trim();
-        p.buyingPrice = num(qs("quickBuyingPrice").value);
-        p.packagingCost = num(qs("quickPackagingCost").value);
-        p.currentSellingPrice = num(qs("quickCurrentSellingPrice").value);
-        p.competitorTotalPrice = num(qs("quickCompetitorTotalPrice").value);
-        p.competitorQty = parseInt(qs("quickCompetitorQty").value, 10) || 0;
-        p.bundleMaxQty = parseInt(qs("quickBundleMaxQty").value, 10) || 12;
-        p.discountRate = settings.defaultDiscountRate;
-        p.targetMarginRate = settings.defaultTargetMarginRate;
-        return p;
-    }
-
-    function calculateQuick() {
-        const product = getQuickProduct();
-
-        if (!product.buyingPrice) {
-            alert(
-                settings.defaultLanguage === "en"
-                    ? "Please enter buying price."
-                    : "Please buying price enter karo."
-            );
-            return;
-        }
-
-        const result = calculateProduct(product, settings);
-        const health = getHealth(result.estimatedProfit);
-        const recommendation = getRecommendation(product, result, settings);
-
-        lastQuickResult = {
-            product,
-            result,
-            health,
-            recommendation
-        };
-
-        renderQuickResults();
-    }
-
-    function renderQuickBundle(product) {
-        const tbody = qs("quickBundleBody");
-
-        if (!product || !product.currentSellingPrice) {
-            tbody.innerHTML = `
-        <tr>
-          <td>1x</td>
-          <td>PKR 0.00</td>
-          <td>PKR 0.00</td>
-          <td>-</td>
-        </tr>
+    if (!products.length) {
+      wrap.innerHTML = `
+        <article class="recent-card glass-soft">
+          <div class="recent-card__top">
+            <strong class="recent-card__name">${escapeHtml(t("recentProducts"))}</strong>
+            <span class="badge badge--neutral">0</span>
+          </div>
+          <p class="recent-card__note">${currentLang === "ru" ? "Abhi koi saved product nahi." : "No saved products yet."}</p>
+        </article>
       `;
-            return;
-        }
-
-        const rows = buildBundleComparison(product, product.bundleMaxQty || 12);
-
-        tbody.innerHTML = rows.map(r => {
-            const h = getHealth(r.profit);
-            return `
-        <tr>
-          <td>${r.qty}x</td>
-          <td>${money(r.price)}</td>
-          <td class="${r.profit >= 0 ? "good" : "bad"}">${money(r.profit)}</td>
-          <td><span class="${badgeClassFromHealth(h.key)}">${getHealthLabel(settings, h.key)}</span></td>
-        </tr>
-      `;
-        }).join("");
+      return;
     }
 
-    function renderQuickResults() {
-        if (!lastQuickResult) {
-            qs("quickMinimumPrice").textContent = "PKR 0.00";
-            qs("quickRecommendedPrice").textContent = "PKR 0.00";
-            qs("quickDiscountSafePrice").textContent = "PKR 0.00";
-            qs("quickCurrentPriceResult").textContent = "PKR 0.00";
-            qs("quickProfitLoss").textContent = "PKR 0.00";
-            qs("quickMargin").textContent = "0.00%";
-            qs("quickCompetitorPerPiece").textContent = "PKR 0.00";
-            qs("quickYourPerPiece").textContent = "PKR 0.00";
-            qs("quickPriceGap").textContent = "PKR 0.00";
-            qs("quickCompetitorStrategy").textContent = "-";
-            qs("quickHealthStatus").textContent = "-";
-            qs("quickRecommendation").textContent = "-";
-
-            qs("quickProfitLoss").className = "stat-value";
-            qs("quickPriceGap").className = "stat-value";
-            qs("quickHealthStatus").className = "stat-value";
-            qs("quickRecommendation").className = "stat-value";
-            qs("quickCompetitorStrategy").className = "stat-value";
-
-            renderQuickBundle(null);
-            return;
-        }
-
-        const { product, result, health, recommendation } = lastQuickResult;
-        const competitorPerPiece = getCompetitorPerPiece(
-            product.competitorTotalPrice,
-            product.competitorQty
-        );
-        const yourPerPiece = getYourPerPiece(product.currentSellingPrice);
-        const gap = competitorPerPiece ? (yourPerPiece - competitorPerPiece) : 0;
-        const competitorStrategy = getCompetitorStrategy(product, result, competitorPerPiece);
-
-        qs("quickMinimumPrice").textContent = money(result.minimumPrice);
-        qs("quickRecommendedPrice").textContent = money(result.recommendedPrice);
-        qs("quickDiscountSafePrice").textContent = money(result.discountSafePrice);
-
-        qs("quickCurrentPriceResult").textContent = money(product.currentSellingPrice || 0);
-        qs("quickProfitLoss").textContent = money(result.estimatedProfit);
-        qs("quickProfitLoss").className = `stat-value ${result.estimatedProfit >= 0 ? "good" : "bad"}`;
-        qs("quickMargin").textContent = `${round2(result.estimatedMarginPercent).toFixed(2)}%`;
-
-        qs("quickCompetitorPerPiece").textContent = competitorPerPiece ? money(competitorPerPiece) : "-";
-        qs("quickYourPerPiece").textContent = yourPerPiece ? money(yourPerPiece) : "-";
-        qs("quickPriceGap").textContent = competitorPerPiece ? money(gap) : "-";
-        qs("quickPriceGap").className = `stat-value ${competitorPerPiece ? (gap <= 0 ? "good" : "risky") : ""}`;
-
-        qs("quickCompetitorStrategy").textContent = competitorStrategy;
-        qs("quickCompetitorStrategy").className = "stat-value";
-
-        qs("quickHealthStatus").innerHTML = `<span class="${badgeClassFromHealth(health.key)}">${getHealthLabel(settings, health.key)}</span>`;
-        qs("quickRecommendation").innerHTML = `<span class="${badgeClassFromRecommendation(recommendation)}">${recommendation}</span>`;
-
-        renderQuickBundle(product);
-    }
-
-    function saveQuickProduct() {
-        if (!lastQuickResult) {
-            calculateQuick();
-            if (!lastQuickResult) return;
-        }
-
-        products.unshift(lastQuickResult.product);
-        persist();
-        renderAll();
-        resetQuickCalculator();
-    }
-
-    function getFilteredProducts() {
-        const q = (qs("searchInput").value || "").trim().toLowerCase();
-        const filter = qs("filterSelect").value || "all";
-
-        return products.filter(product => {
-            const result = calculateProduct(product, settings);
-            const recommendation = getRecommendation(product, result, settings).toLowerCase();
-            const hay = `${product.sku || ""} ${product.notes || ""}`.toLowerCase();
-
-            const searchOk = !q || hay.includes(q);
-
-            const filterOk =
-                filter === "all" ||
-                (filter === "loss" && result.estimatedProfit < 0) ||
-                (filter === "safe" && result.estimatedProfit >= 0) ||
-                (filter === "bundle" && recommendation.includes("bundle"));
-
-            return searchOk && filterOk;
-        });
-    }
-
-    function renderSummary() {
-        let lossCount = 0;
-        let marginSum = 0;
-        let bestSku = "-";
-        let bestProfit = -Infinity;
-
-        products.forEach(product => {
-            const result = calculateProduct(product, settings);
-            marginSum += result.estimatedMarginPercent || 0;
-            if (result.estimatedProfit < 0) lossCount++;
-            if (result.estimatedProfit > bestProfit) {
-                bestProfit = result.estimatedProfit;
-                bestSku = product.sku || "-";
-            }
+    wrap.innerHTML = products
+      .map((product) => {
+        const result = Calc.runPricingEngine({
+          sku: product.sku,
+          buyingPrice: product.buyingPrice,
+          packagingCost: product.packagingCost,
+          currentSellingPrice: product.currentSellingPrice,
+          bundleQty: product.bundleQty,
+          competitorTotalPrice: product.competitorTotalPrice,
+          competitorQty: product.competitorQty,
+          settings,
+          lang: currentLang
         });
 
-        const avgMargin = products.length ? marginSum / products.length : 0;
-
-        qs("summaryProducts").textContent = products.length;
-        qs("summaryLossCount").textContent = lossCount;
-        qs("summaryAvgMargin").textContent = `${round2(avgMargin).toFixed(2)}%`;
-        qs("summaryBestSku").textContent = bestSku;
-    }
-
-    function renderProductsTable() {
-        const tbody = qs("productsTableBody");
-        const list = getFilteredProducts();
-
-        if (!list.length) {
-            tbody.innerHTML = `
-        <tr>
-          <td colspan="9">${settings.defaultLanguage === "en" ? "No matching products found." : "Koi matching product nahi mila."}</td>
-        </tr>
-      `;
-            return;
-        }
-
-        tbody.innerHTML = list.map(product => {
-            const result = calculateProduct(product, settings);
-            const health = getHealth(result.estimatedProfit);
-            const healthText = getHealthLabel(settings, health.key);
-            const recommendation = getRecommendation(product, result, settings);
-
-            return `
-        <tr class="clickable-row" data-row-id="${product.id}">
-          <td>${escapeHtml(product.sku || "-")}</td>
-          <td>${money(product.buyingPrice || 0)}</td>
-          <td>${money(product.currentSellingPrice || 0)}</td>
-          <td>${money(result.minimumPrice || 0)}</td>
-          <td>${money(result.recommendedPrice || 0)}</td>
-          <td class="${result.estimatedProfit >= 0 ? "good" : "bad"}">${money(result.estimatedProfit || 0)}</td>
-          <td><span class="${badgeClassFromHealth(health.key)}">${healthText}</span></td>
-          <td><span class="${badgeClassFromRecommendation(recommendation)}">${recommendation}</span></td>
-          <td class="no-print">
-            <div class="table-actions">
-              <button class="btn ghost btn-xs" data-action="view" data-id="${product.id}">View</button>
-              <button class="btn ghost btn-xs" data-action="duplicate" data-id="${product.id}">${t(settings, "duplicate")}</button>
-              <button class="btn danger btn-xs" data-action="delete" data-id="${product.id}">${t(settings, "delete")}</button>
+        return `
+          <article class="recent-card glass-soft" data-product-id="${product.id}">
+            <div class="recent-card__top">
+              <strong class="recent-card__name">${escapeHtml(product.sku || "Unnamed Product")}</strong>
+              <span class="badge ${result.healthStatus.className}">${escapeHtml(getStatusLabel(result.healthStatus))}</span>
             </div>
-          </td>
-        </tr>
+
+            <div class="recent-card__meta">
+              <span>${escapeHtml(t("buyingPrice"))} ${Calc.formatCurrency(product.buyingPrice || 0)}</span>
+              <span>${escapeHtml(t("profitLoss"))} ${result.formatted.profitLoss}</span>
+            </div>
+
+            <p class="recent-card__note">${escapeHtml(result.recommendation.message)}</p>
+          </article>
+        `;
+      })
+      .join("");
+
+    qsa("[data-product-id]").forEach((card) => {
+      card.addEventListener("click", () => {
+        loadProductIntoForm(card.getAttribute("data-product-id"));
+      });
+    });
+  }
+
+  // ---------- SAVE PRODUCT ----------
+
+  function saveCurrentProduct() {
+    const data = getFormData();
+
+    if (!Calc.toNumber(data.buyingPrice)) {
+      alert(currentLang === "ru" ? "Buying price enter karo." : "Please enter buying price.");
+      return;
+    }
+
+    const result = Calc.runPricingEngine({
+      ...data,
+      settings,
+      lang: currentLang
+    });
+
+    const product = {
+      id: Storage.generateId(),
+      sku: data.sku || "Unnamed Product",
+      buyingPrice: Calc.toNumber(data.buyingPrice),
+      packagingCost: Calc.toNumber(data.packagingCost),
+      currentSellingPrice: Calc.toNumber(data.currentSellingPrice),
+      bundleQty: Calc.toNumber(data.bundleQty),
+      competitorTotalPrice: Calc.toNumber(data.competitorTotalPrice),
+      competitorQty: Calc.toNumber(data.competitorQty),
+
+      minimumPrice: result.minimumPrice,
+      recommendedPrice: result.recommendedPrice,
+      discountSafePrice: result.discountSafePrice,
+      profitLoss: result.profitLoss,
+      marginPercent: result.marginPercent,
+      statusKey: result.healthStatus.key,
+      statusLabel: getStatusLabel(result.healthStatus),
+      recommendationTitle: result.recommendation.title,
+      recommendationMessage: result.recommendation.message,
+      savedAt: new Date().toISOString()
+    };
+
+    Storage.addProduct(product);
+    renderRecentProducts();
+
+    alert(currentLang === "ru" ? "Product save ho gaya." : "Product saved.");
+  }
+
+  // ---------- QUICK ADD PRICE BUTTONS ----------
+
+  function bindQuickAddButtons() {
+    qsa("[data-add-price]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const addValue = Calc.toNumber(btn.getAttribute("data-add-price"));
+        const current = Calc.toNumber(getValue("currentSellingPriceInput"));
+        setValue("currentSellingPriceInput", Calc.round2(current + addValue));
+        runCalculation();
+      });
+    });
+  }
+
+  // ---------- CHARTS (simple live) ----------
+
+  function renderCharts() {
+    const products = Storage.getRecentProducts(5);
+
+    const profitChart = $("profitChart");
+    const revenueChart = $("revenueChart");
+
+    if (!profitChart || !revenueChart) return;
+
+    if (!products.length) {
+      profitChart.innerHTML = `
+        <div class="chart-bar">
+          <span class="chart-bar__label">No Data</span>
+          <div class="chart-bar__track">
+            <div class="chart-bar__fill chart-bar__fill--negative" style="width: 0%"></div>
+          </div>
+          <span class="chart-bar__value">0</span>
+        </div>
       `;
-        }).join("");
 
-        tbody.querySelectorAll("tr[data-row-id]").forEach(row => {
-            row.addEventListener("click", (e) => {
-                const target = e.target;
-                if (target.closest("button")) return;
-                selectedProductId = row.dataset.rowId;
-                renderProductDetailArea();
-            });
-        });
-
-        tbody.querySelectorAll("[data-action='view']").forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                selectedProductId = btn.dataset.id;
-                renderProductDetailArea();
-            });
-        });
-
-        tbody.querySelectorAll("[data-action='duplicate']").forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                duplicateProduct(btn.dataset.id);
-            });
-        });
-
-        tbody.querySelectorAll("[data-action='delete']").forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                deleteProduct(btn.dataset.id);
-            });
-        });
+      revenueChart.innerHTML = `
+        <div class="chart-bar">
+          <span class="chart-bar__label">No Data</span>
+          <div class="chart-bar__track">
+            <div class="chart-bar__fill chart-bar__fill--revenue" style="width: 0%"></div>
+          </div>
+          <span class="chart-bar__value">0</span>
+        </div>
+      `;
+      return;
     }
 
-    function duplicateProduct(id) {
-        const found = products.find(x => x.id === id);
-        if (!found) return;
+    const recentResults = products.map((product) => {
+      const result = Calc.runPricingEngine({
+        sku: product.sku,
+        buyingPrice: product.buyingPrice,
+        packagingCost: product.packagingCost,
+        currentSellingPrice: product.currentSellingPrice,
+        bundleQty: product.bundleQty,
+        competitorTotalPrice: product.competitorTotalPrice,
+        competitorQty: product.competitorQty,
+        settings,
+        lang: currentLang
+      });
 
-        const copy = clone(found);
-        copy.id = uid();
-        copy.sku = (copy.sku || "Product") + " Copy";
+      return {
+        sku: product.sku || "Unnamed",
+        profit: result.profitLoss,
+        revenue: Calc.toNumber(product.currentSellingPrice)
+      };
+    });
 
-        products.unshift(copy);
-        persist();
-        renderAll();
-    }
+    const maxProfitAbs = Math.max(
+      1,
+      ...recentResults.map((r) => Math.abs(r.profit))
+    );
 
-    function closeDrawer() {
-        selectedProductId = null;
-        renderProductDetailArea();
-    }
+    const maxRevenue = Math.max(
+      1,
+      ...recentResults.map((r) => r.revenue)
+    );
 
-    function deleteProduct(id) {
-        if (products.length === 1) {
-            alert(
-                settings.defaultLanguage === "en"
-                    ? "At least one product should remain."
-                    : "Kam az kam aik product rehna chahiye."
-            );
-            return;
-        }
+    profitChart.innerHTML = recentResults
+      .map((item) => {
+        const width = (Math.abs(item.profit) / maxProfitAbs) * 100;
+        const fillClass =
+          item.profit >= 0
+            ? "chart-bar__fill chart-bar__fill--positive"
+            : "chart-bar__fill chart-bar__fill--negative";
 
-        products = products.filter(x => x.id !== id);
-        if (selectedProductId === id) selectedProductId = null;
-        persist();
-        renderAll();
-    }
-
-    function renderProductDetailArea() {
-        const area = qs("productDetailArea");
-
-        if (!selectedProductId) {
-            area.innerHTML = "";
-            return;
-        }
-
-        const product = products.find(x => x.id === selectedProductId);
-        if (!product) {
-            area.innerHTML = "";
-            return;
-        }
-
-        const result = calculateProduct(product, settings);
-        const recommendation = getRecommendation(product, result, settings);
-        const competitorPerPiece = getCompetitorPerPiece(product.competitorTotalPrice, product.competitorQty);
-        const bundles = buildBundleComparison(product, product.bundleMaxQty || 12);
-
-        area.innerHTML = `
-      <div class="drawer-backdrop" id="drawerBackdrop"></div>
-      <div class="detail-card">
-        <div class="detail-head">
-          <h3>${escapeHtml(product.sku || "-")}</h3>
-          <div class="detail-actions">
-            <button class="btn success btn-sm" id="detailSaveBtn" type="button">${settings.defaultLanguage === "en" ? "Save Changes" : "Changes Save Karo"}</button>
-            <button class="btn ghost btn-sm" id="detailCloseBtn" type="button">Close</button>
+        return `
+          <div class="chart-bar">
+            <span class="chart-bar__label">${escapeHtml(item.sku)}</span>
+            <div class="chart-bar__track">
+              <div class="${fillClass}" style="width:${Math.max(width, 4)}%"></div>
+            </div>
+            <span class="chart-bar__value">${Calc.round2(item.profit)}</span>
           </div>
-        </div>
+        `;
+      })
+      .join("");
 
-        <div class="form-grid three">
-          <div>
-            <label>${t(settings, "sku")}</label>
-            <input id="detailSku" value="${escapeHtml(product.sku || "")}" />
-          </div>
-          <div>
-            <label>${t(settings, "buyingPrice")}</label>
-            <input id="detailBuyingPrice" type="number" step="0.01" value="${product.buyingPrice}" />
-          </div>
-          <div>
-            <label>${t(settings, "packagingCost")}</label>
-            <input id="detailPackagingCost" type="number" step="0.01" value="${product.packagingCost}" />
-          </div>
-          <div>
-            <label>${t(settings, "currentSellingPrice")}</label>
-            <input id="detailCurrentSellingPrice" type="number" step="0.01" value="${product.currentSellingPrice}" />
-          </div>
-          <div>
-            <label>Competitor Total Price</label>
-            <input id="detailCompetitorTotalPrice" type="number" step="0.01" value="${product.competitorTotalPrice || ""}" />
-          </div>
-          <div>
-            <label>Competitor Quantity</label>
-            <input id="detailCompetitorQty" type="number" step="1" value="${product.competitorQty || ""}" />
-          </div>
-          <div>
-            <label>Max Bundle Qty</label>
-            <select id="detailBundleMaxQty">
-              <option value="5" ${String(product.bundleMaxQty) === "5" ? "selected" : ""}>5x</option>
-              <option value="6" ${String(product.bundleMaxQty) === "6" ? "selected" : ""}>6x</option>
-              <option value="8" ${String(product.bundleMaxQty) === "8" ? "selected" : ""}>8x</option>
-              <option value="10" ${String(product.bundleMaxQty) === "10" ? "selected" : ""}>10x</option>
-              <option value="12" ${String(product.bundleMaxQty || 12) === "12" ? "selected" : ""}>12x</option>
-            </select>
-          </div>
-          <div>
-            <label>Shipping Shortfall</label>
-            <input id="detailShippingShortfall" type="number" step="0.01" value="${product.shippingShortfall}" />
-          </div>
-          <div>
-            <label>${t(settings, "notes")}</label>
-            <input id="detailNotes" value="${escapeHtml(product.notes || "")}" />
-          </div>
-        </div>
+    revenueChart.innerHTML = recentResults
+      .map((item) => {
+        const width = (item.revenue / maxRevenue) * 100;
 
-        <div class="detail-summary">
-          <div><strong>${t(settings, "minimumPrice")}:</strong> ${money(result.minimumPrice)}</div>
-          <div><strong>${t(settings, "recommendedPrice")}:</strong> ${money(result.recommendedPrice)}</div>
-          <div><strong>${t(settings, "discountSafePrice")}:</strong> ${money(result.discountSafePrice)}</div>
-          <div><strong>${t(settings, "profitLoss")}:</strong> <span class="${result.estimatedProfit >= 0 ? "good" : "bad"}">${money(result.estimatedProfit)}</span></div>
-          <div><strong>${t(settings, "recommendation")}:</strong> <span class="${badgeClassFromRecommendation(recommendation)}">${recommendation}</span></div>
-          <div><strong>Competitor Per Piece:</strong> ${competitorPerPiece ? money(competitorPerPiece) : "-"}</div>
-        </div>
+        return `
+          <div class="chart-bar">
+            <span class="chart-bar__label">${escapeHtml(item.sku)}</span>
+            <div class="chart-bar__track">
+              <div class="chart-bar__fill chart-bar__fill--revenue" style="width:${Math.max(width, 4)}%"></div>
+            </div>
+            <span class="chart-bar__value">${Calc.round2(item.revenue)}</span>
+          </div>
+        `;
+      })
+      .join("");
+  }
 
-        <div class="tool-result">
-          <strong>${t(settings, "bundleComparison")}:</strong><br>
-          ${bundles.map(r => `${r.qty}x = ${money(r.price)} | ${t(settings, "profitLoss")}: ${money(r.profit)}`).join("<br>")}
-        </div>
+  // ---------- REPORT PREVIEW ----------
+
+  function renderReportPreview() {
+    const rows = Storage.getRecentProducts(2);
+    const wrap = document.querySelector(".report-preview");
+
+    if (!wrap) return;
+
+    const head = `
+      <div class="report-preview__row report-preview__row--head">
+        <span>${escapeHtml(t("sku"))}</span>
+        <span>${escapeHtml(t("price"))}</span>
+        <span>${escapeHtml(t("profitLoss"))}</span>
+        <span>${escapeHtml(t("status"))}</span>
       </div>
     `;
 
-        qs("detailCloseBtn").addEventListener("click", closeDrawer);
-        qs("drawerBackdrop").addEventListener("click", closeDrawer);
-
-        qs("detailSaveBtn").addEventListener("click", () => {
-            const idx = products.findIndex(x => x.id === selectedProductId);
-            if (idx === -1) return;
-
-            products[idx] = {
-                ...products[idx],
-                sku: qs("detailSku").value.trim(),
-                buyingPrice: num(qs("detailBuyingPrice").value),
-                packagingCost: num(qs("detailPackagingCost").value),
-                currentSellingPrice: num(qs("detailCurrentSellingPrice").value),
-                competitorTotalPrice: num(qs("detailCompetitorTotalPrice").value),
-                competitorQty: parseInt(qs("detailCompetitorQty").value, 10) || 0,
-                bundleMaxQty: parseInt(qs("detailBundleMaxQty").value, 10) || 12,
-                shippingShortfall: qs("detailShippingShortfall").value,
-                notes: qs("detailNotes").value
-            };
-
-            persist();
-            renderAll();
-        });
-    }
-
-    function renderCharts() {
-        const list = getFilteredProducts().map(product => ({
-            sku: product.sku || "-",
-            result: calculateProduct(product, settings)
-        }));
-
-        const profitChart = qs("profitChart");
-        const revenueChart = qs("revenueChart");
-
-        if (!list.length) {
-            const msg = settings.defaultLanguage === "en" ? "No chart data." : "Chart data nahi mili.";
-            profitChart.innerHTML = `<div class="empty">${msg}</div>`;
-            revenueChart.innerHTML = `<div class="empty">${msg}</div>`;
-            return;
-        }
-
-        const maxAbsProfit = Math.max(1, ...list.map(x => Math.abs(x.result.estimatedProfit || 0)));
-        const maxRevenue = Math.max(1, ...list.map(x => x.result.revenueBase || 0));
-
-        profitChart.innerHTML = list.map(item => {
-            const profit = item.result.estimatedProfit || 0;
-            const width = Math.max(3, (Math.abs(profit) / maxAbsProfit) * 100);
-            const cls = profit >= 0 ? "positive" : "negative";
-
-            return `
-        <div class="chart-row">
-          <div class="chart-label">${escapeHtml(item.sku)}</div>
-          <div class="bar-track">
-            <div class="bar-fill ${cls}" style="width:${width}%"></div>
-          </div>
-          <div class="chart-value">${money(profit)}</div>
+    if (!rows.length) {
+      wrap.innerHTML =
+        head +
+        `
+        <div class="report-preview__row">
+          <span>—</span>
+          <span>—</span>
+          <span>—</span>
+          <span>—</span>
         </div>
       `;
-        }).join("");
+      return;
+    }
 
-        revenueChart.innerHTML = list.map(item => {
-            const revenue = item.result.revenueBase || 0;
-            const width = Math.max(3, (revenue / maxRevenue) * 100);
+    const body = rows
+      .map((product) => {
+        const result = Calc.runPricingEngine({
+          sku: product.sku,
+          buyingPrice: product.buyingPrice,
+          packagingCost: product.packagingCost,
+          currentSellingPrice: product.currentSellingPrice,
+          bundleQty: product.bundleQty,
+          competitorTotalPrice: product.competitorTotalPrice,
+          competitorQty: product.competitorQty,
+          settings,
+          lang: currentLang
+        });
 
-            return `
-        <div class="chart-row">
-          <div class="chart-label">${escapeHtml(item.sku)}</div>
-          <div class="bar-track">
-            <div class="bar-fill revenue" style="width:${width}%"></div>
+        const textClass = result.profitLoss >= 0 ? "text-success" : "text-danger";
+
+        return `
+          <div class="report-preview__row">
+            <span>${escapeHtml(product.sku || "Unnamed Product")}</span>
+            <span>${Calc.formatCurrency(product.currentSellingPrice || 0)}</span>
+            <span class="${textClass}">${result.formatted.profitLoss}</span>
+            <span>${escapeHtml(getStatusLabel(result.healthStatus))}</span>
           </div>
-          <div class="chart-value">${money(revenue)}</div>
-        </div>
-      `;
-        }).join("");
-    }
+        `;
+      })
+      .join("");
 
-    function renderReportTable() {
-        const tbody = qs("reportTableBody");
-        const list = getFilteredProducts();
+    wrap.innerHTML = head + body;
+  }
 
-        if (!list.length) {
-            tbody.innerHTML = `
-        <tr>
-          <td colspan="7">${settings.defaultLanguage === "en" ? "No matching products found." : "Koi matching product nahi mila."}</td>
-        </tr>
-      `;
-            return;
-        }
+  // ---------- MAIN CALCULATION ----------
 
-        tbody.innerHTML = list.map(product => {
-            const result = calculateProduct(product, settings);
-            const health = getHealth(result.estimatedProfit);
-            const healthText = getHealthLabel(settings, health.key);
-            const recommendation = getRecommendation(product, result, settings);
+  function runCalculation() {
+    settings = Storage.getSettings();
 
-            return `
-        <tr>
-          <td>${escapeHtml(product.sku || "-")}</td>
-          <td>${money(result.revenueBase || 0)}</td>
-          <td class="${result.estimatedProfit >= 0 ? "good" : "bad"}">${money(result.estimatedProfit)}</td>
-          <td>${round2(result.estimatedMarginPercent).toFixed(2)}%</td>
-          <td><span class="${badgeClassFromHealth(health.key)}">${healthText}</span></td>
-          <td><span class="${badgeClassFromRecommendation(recommendation)}">${recommendation}</span></td>
-          <td>${escapeHtml(product.notes || "")}</td>
-        </tr>
-      `;
-        }).join("");
-    }
+    const data = getFormData();
 
-    function bulkImport() {
-        const raw = qs("bulkPaste").value.trim();
+    const result = Calc.runPricingEngine({
+      ...data,
+      settings,
+      lang: currentLang
+    });
 
-        if (!raw) {
-            alert(
-                settings.defaultLanguage === "en"
-                    ? "Paste some rows first."
-                    : "Pehle kuch rows paste karo."
-            );
-            return;
-        }
+    // add formatted current selling price for convenience
+    result.formatted.currentSellingPrice = Calc.formatCurrency(result.currentSellingPrice);
 
-        const lines = raw.split(/\r?\n/).filter(Boolean);
+    renderAssumptions();
+    renderHero(result);
+    renderOverview(result);
+    renderCharts();
+    renderReportPreview();
 
-        const imported = lines.map(line => {
-            const parts = line.split(",");
+    return result;
+  }
 
-            const p = clone(defaultProduct);
-            p.id = uid();
-            p.mode = "pricing";
-            p.sku = (parts[0] || "").trim();
-            p.buyingPrice = num(parts[1]);
-            p.currentSellingPrice = num(parts[2]);
-            p.packagingCost = num(parts[3]);
-            p.shippingShortfall = parts[4] !== undefined ? String(num(parts[4])) : "";
-            p.notes = (parts[5] || "").trim();
-            p.discountRate = settings.defaultDiscountRate;
-            p.targetMarginRate = settings.defaultTargetMarginRate;
-            p.bundleMaxQty = 12;
+  // ---------- PRINT ----------
 
-            return p;
-        });
+  function printReport() {
+    window.print();
+  }
 
-        products = [...imported, ...products];
-        qs("bulkPaste").value = "";
-        persist();
-        renderAll();
-    }
+  // ---------- INIT ----------
 
-    function clearBulk() {
-        qs("bulkPaste").value = "";
-    }
+  function bindEvents() {
+    const langToggle = $("langToggle");
+    if (langToggle) langToggle.addEventListener("click", toggleLanguage);
 
-    function runOfferPlanner() {
-        const result = planOffer(
-            {
-                basePrice: num(qs("offerBasePrice").value),
-                discountPercent: num(qs("offerDiscount").value),
-                extraVoucherPercent: num(qs("offerVoucher").value),
-                coinsPercent: num(qs("offerCoins").value),
-                buyingPrice: num(qs("offerBuyingPrice").value),
-                packagingCost: num(qs("offerPackaging").value)
-            },
-            settings
-        );
+    const calcBtn = $("calculateNowBtn");
+    if (calcBtn) calcBtn.addEventListener("click", runCalculation);
 
-        qs("offerResult").dataset.filled = "1";
-        qs("offerResult").innerHTML = `
-      Final sale price: <strong>${money(result.finalSalePrice)}</strong><br>
-      Voucher impact: <strong>${money(result.voucherImpact)}</strong><br>
-      Coins impact: <strong>${money(result.coinsImpact)}</strong><br>
-      Profit after promo impact:
-      <strong class="${result.finalProfitAfterPromo >= 0 ? "good" : "bad"}">${money(result.finalProfitAfterPromo)}</strong>
-    `;
-    }
+    const saveBtn = $("saveProductBtn");
+    if (saveBtn) saveBtn.addEventListener("click", saveCurrentProduct);
 
-    function exportCSV() {
-        const rows = [[
-            "SKU",
-            "Buying Price",
-            "Current Price",
-            "Competitor Total Price",
-            "Competitor Qty",
-            "Minimum Price",
-            "Recommended Price",
-            "Profit/Loss",
-            "Margin %",
-            "Notes"
-        ]];
+    const clearBtn = $("clearFormBtn");
+    if (clearBtn) clearBtn.addEventListener("click", clearForm);
 
-        products.forEach(product => {
-            const result = calculateProduct(product, settings);
-            rows.push([
-                product.sku || "Product",
-                round2(product.buyingPrice),
-                round2(product.currentSellingPrice),
-                round2(product.competitorTotalPrice || 0),
-                product.competitorQty || 0,
-                round2(result.minimumPrice || 0),
-                round2(result.recommendedPrice || 0),
-                round2(result.estimatedProfit || 0),
-                round2(result.estimatedMarginPercent || 0),
-                product.notes || ""
-            ]);
-        });
+    const showAssumptionsBtn = $("showAssumptionsBtn");
+    if (showAssumptionsBtn) showAssumptionsBtn.addEventListener("click", toggleAssumptions);
 
-        const csv = rows
-            .map(row => row.map(cell => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
-            .join("\n");
+    const topToggleBtn = $("toggleAssumptionsBtn");
+    if (topToggleBtn) topToggleBtn.addEventListener("click", toggleAssumptions);
 
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "daraz_calculator_export.csv";
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+    const printBtn = $("printReportBtn");
+    if (printBtn) printBtn.addEventListener("click", printReport);
 
-    function printReport() {
-        renderAll();
-        window.print();
-    }
+    // auto-calc on change
+    [
+      "skuInput",
+      "buyingPriceInput",
+      "packagingCostInput",
+      "currentSellingPriceInput",
+      "bundleQtyInput",
+      "competitorTotalPriceInput",
+      "competitorQtyInput"
+    ].forEach((id) => {
+      const el = $(id);
+      if (!el) return;
+      el.addEventListener("input", runCalculation);
+      el.addEventListener("change", runCalculation);
+    });
 
-    function bindTabs() {
-        const buttons = document.querySelectorAll(".tab-btn");
-        const panels = document.querySelectorAll(".tab-panel");
+    bindQuickAddButtons();
+  }
 
-        buttons.forEach(btn => {
-            btn.addEventListener("click", () => {
-                const target = btn.dataset.tab;
-                buttons.forEach(b => b.classList.remove("active"));
-                panels.forEach(p => p.classList.remove("active"));
-                btn.classList.add("active");
-                qs(target).classList.add("active");
-            });
-        });
-    }
-
-    function renderAll() {
-        applyStaticTranslations();
-        renderQuickResults();
-        renderSummary();
-        renderProductsTable();
-        renderProductDetailArea();
-        renderCharts();
-        renderReportTable();
-    }
-
-    function bindEvents() {
-        qs("langEnBtn").addEventListener("click", () => setLanguage("en"));
-        qs("langRuBtn").addEventListener("click", () => setLanguage("ru"));
-
-        qs("quickCalculateBtn").addEventListener("click", calculateQuick);
-        qs("quickSaveBtn").addEventListener("click", saveQuickProduct);
-        qs("quickClearBtn").addEventListener("click", resetQuickCalculator);
-
-        qs("printBtn").addEventListener("click", printReport);
-        qs("exportBtn").addEventListener("click", exportCSV);
-
-        qs("searchInput").addEventListener("input", () => {
-            renderProductsTable();
-            renderCharts();
-            renderReportTable();
-        });
-
-        qs("filterSelect").addEventListener("change", () => {
-            renderProductsTable();
-            renderCharts();
-            renderReportTable();
-        });
-
-        qs("bulkImportBtn").addEventListener("click", bulkImport);
-        qs("clearBulkBtn").addEventListener("click", clearBulk);
-        qs("offerCalcBtn").addEventListener("click", runOfferPlanner);
-    }
-
+  function init() {
+    applyTranslations();
+    renderAssumptions();
+    renderRecentProducts();
+    renderCharts();
+    renderReportPreview();
+    runCalculation();
     bindEvents();
-    bindTabs();
-    applyStaticTranslations();
-    resetQuickCalculator();
-    renderAll();
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
 })();
