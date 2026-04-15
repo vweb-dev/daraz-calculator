@@ -4,7 +4,9 @@ window.APP_CONFIG = {
     products: "daraz_calc_products_v1",
     language: "daraz_calc_lang_v1",
     adminAuth: "daraz_calc_admin_auth_v1",
-    competitors: "daraz_calc_competitors_v1"
+    competitors: "daraz_calc_competitors_v1",
+    draft: "daraz_calc_draft_v1",
+    autoSave: "daraz_calc_autosave_v1"
   },
 
   admin: {

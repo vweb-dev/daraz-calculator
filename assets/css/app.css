@@ -400,6 +400,74 @@ a {
     letter-spacing: -.02em;
 }
 
+.input-with-actions,
+.input-with-hint {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-actions input {
+    padding-right: 52px;
+}
+
+.input-with-hint input {
+    padding-bottom: 32px;
+}
+
+.copy-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    min-height: 42px;
+    width: 42px;
+    border-radius: 14px;
+    border: 1px solid var(--line-strong);
+    background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .04));
+    color: var(--muted);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+    background: linear-gradient(180deg, rgba(122, 162, 255, .15), rgba(122, 162, 255, .08));
+    border-color: rgba(122, 162, 255, .4);
+    color: var(--primary);
+}
+
+.copy-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.field-hint {
+    position: absolute;
+    bottom: 8px;
+    left: 16px;
+    right: 16px;
+    font-size: 0.75rem;
+    color: var(--muted-2);
+    font-weight: 500;
+    pointer-events: none;
+}
+
+.field-hint.profit-positive {
+    color: var(--success);
+}
+
+.field-hint.profit-negative {
+    color: var(--danger);
+}
+
+.header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 input,
 select,
 textarea {
@@ -946,4 +1014,26 @@ textarea:focus {
   max-width:560px;
   border-radius:26px;
   overflow:hidden;
+}
+
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes toastFadeOut {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
 }

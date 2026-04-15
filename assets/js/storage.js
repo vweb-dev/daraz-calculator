@@ -135,6 +135,33 @@
     removeItem(storageKeys.adminAuth);
   }
 
+  // ---------- DRAFT (AUTO-SAVE) ----------
+
+  function saveDraft(data) {
+    setItem(storageKeys.draft, {
+      ...data,
+      savedAt: new Date().toISOString()
+    });
+  }
+
+  function getDraft() {
+    return getItem(storageKeys.draft, null);
+  }
+
+  function clearDraft() {
+    removeItem(storageKeys.draft);
+  }
+
+  // ---------- AUTO-SAVE PREFERENCE ----------
+
+  function getAutoSave() {
+    return getItem(storageKeys.autoSave, true);
+  }
+
+  function setAutoSave(enabled) {
+    setItem(storageKeys.autoSave, enabled);
+  }
+
   // ---------- EXPORT / IMPORT ----------
 
   function exportData() {
@@ -229,6 +256,15 @@
     addCompetitor,
     updateCompetitor,
     deleteCompetitor,
+
+    // draft (auto-save)
+    saveDraft,
+    getDraft,
+    clearDraft,
+
+    // auto-save preference
+    getAutoSave,
+    setAutoSave,
 
     // utils
     generateId,

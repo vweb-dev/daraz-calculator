@@ -577,6 +577,141 @@
     window.print();
   }
 
+  // ---------- COPY TO CLIPBOARD ----------
+
+  async function copySkuToClipboard() {
+    const sku = getValue("skuInput").trim();
+    if (!sku) {
+      showToast(currentLang === "ru" ? "SKU khaali hai" : "SKU is empty", "warning");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(sku);
+      showToast(currentLang === "ru" ? "SKU clipboard mein copy ho gaya" : "SKU copied to clipboard", "success");
+    } catch (err) {
+      // Fallback for older browsers
+      const textarea = document.createElement("textarea");
+      textarea.value = sku;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      showToast(currentLang === "ru" ? "SKU copy ho gaya" : "SKU copied", "success");
+    }
+  }
+
+  // ---------- AUTO-SAVE DRAFT ----------
+
+  let autoSaveEnabled = true;
+  let autoSaveTimer = null;
+
+  function toggleAutoSave() {
+    autoSaveEnabled = !autoSaveEnabled;
+    Storage.setAutoSave(autoSaveEnabled);
+    updateAutoSaveButton();
+    
+    if (autoSaveEnabled) {
+      showToast(currentLang === "ru" ? "Auto-save enabled" : "Auto-save enabled", "success");
+      saveDraft();
+    } else {
+      showToast(currentLang === "ru" ? "Auto-save disabled" : "Auto-save disabled", "warning");
+    }
+  }
+
+  function updateAutoSaveButton() {
+    const btn = $("autoSaveToggle");
+    if (!btn) return;
+    
+    btn.style.opacity = autoSaveEnabled ? "1" : "0.5";
+    btn.title = autoSaveEnabled 
+      ? (currentLang === "ru" ? "Auto-save enabled (Ctrl+S)" : "Auto-save enabled (Ctrl+S)")
+      : (currentLang === "ru" ? "Auto-save disabled" : "Auto-save disabled");
+  }
+
+  function saveDraft() {
+    if (!autoSaveEnabled) return;
+    
+    const data = getFormData();
+    if (!data.buyingPrice && !data.sku) return; // Don't save empty drafts
+    
+    Storage.saveDraft(data);
+    
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+      showToast(currentLang === "ru" ? "Draft saved" : "Draft saved", "success");
+    }, 300);
+  }
+
+  function loadDraft() {
+    const draft = Storage.getDraft();
+    if (draft && draft.sku) {
+      setFormData(draft);
+      runCalculation();
+    }
+  }
+
+  // ---------- TOAST NOTIFICATIONS ----------
+
+  function showToast(message, type = "info") {
+    // Remove existing toast
+    const existingToast = document.querySelector(".toast-notification");
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement("div");
+    toast.className = `toast-notification toast--${type}`;
+    toast.textContent = message;
+    
+    // Styles inline for simplicity
+    Object.assign(toast.style, {
+      position: "fixed",
+      bottom: "100px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      padding: "12px 24px",
+      borderRadius: "14px",
+      background: type === "success" ? "rgba(85, 214, 168, 0.9)" : 
+                  type === "warning" ? "rgba(246, 195, 107, 0.9)" :
+                  "rgba(122, 162, 255, 0.9)",
+      color: "#07111f",
+      fontWeight: "600",
+      fontSize: "0.9rem",
+      zIndex: "10000",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+      animation: "toastSlideUp 0.3s ease-out"
+    });
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.animation = "toastFadeOut 0.3s ease-out";
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+  }
+
+  // ---------- QUICK PROFIT HINT ----------
+
+  function updateQuickProfitHint() {
+    const hintEl = $("quickProfitHint");
+    if (!hintEl) return;
+
+    const buyingPrice = Calc.toNumber(getValue("buyingPriceInput"));
+    const sellingPrice = Calc.toNumber(getValue("currentSellingPriceInput"));
+    const packagingCost = Calc.toNumber(getValue("packagingCostInput"));
+
+    if (!buyingPrice || !sellingPrice) {
+      hintEl.textContent = "";
+      hintEl.className = "field-hint";
+      return;
+    }
+
+    const quickProfit = sellingPrice - buyingPrice - packagingCost;
+    const profitSign = quickProfit >= 0 ? "+" : "";
+    
+    hintEl.textContent = `${currentLang === "ru" ? "Quick profit" : "Quick profit"}: ${profitSign}${Calc.formatCurrency(quickProfit)}`;
+    hintEl.className = `field-hint ${quickProfit >= 0 ? "profit-positive" : "profit-negative"}`;
+  }
+
   // ---------- INIT ----------
 
   function bindEvents() {
@@ -605,19 +740,17 @@
         reader.onload = (event) => {
           const result = Storage.importData(event.target.result);
           if (result.success) {
-            alert(currentLang === "ru" 
+            showToast(currentLang === "ru" 
               ? `Import successful! ${result.count} products loaded.`
-              : `Import successful! ${result.count} products loaded.`
-            );
+              : `Import successful! ${result.count} products loaded.`, "success");
             renderRecentProducts();
             renderCharts();
             renderReportPreview();
             runCalculation();
           } else {
-            alert(currentLang === "ru"
+            showToast(currentLang === "ru"
               ? `Import failed: ${result.error}`
-              : `Import failed: ${result.error}`
-            );
+              : `Import failed: ${result.error}`, "warning");
           }
         };
         reader.readAsText(file);
@@ -634,6 +767,14 @@
     const printBtn = $("printReportBtn");
     if (printBtn) printBtn.addEventListener("click", printReport);
 
+    // Copy SKU button
+    const copySkuBtn = $("copySkuBtn");
+    if (copySkuBtn) copySkuBtn.addEventListener("click", copySkuToClipboard);
+
+    // Auto-save toggle
+    const autoSaveToggleBtn = $("autoSaveToggle");
+    if (autoSaveToggleBtn) autoSaveToggleBtn.addEventListener("click", toggleAutoSave);
+
     // auto-calc on change
     [
       "skuInput",
@@ -646,11 +787,40 @@
     ].forEach((id) => {
       const el = $(id);
       if (!el) return;
-      el.addEventListener("input", runCalculation);
-      el.addEventListener("change", runCalculation);
+      el.addEventListener("input", () => {
+        runCalculation();
+        updateQuickProfitHint();
+        // Debounced auto-save on input changes
+        if (autoSaveEnabled) {
+          clearTimeout(autoSaveTimer);
+          autoSaveTimer = setTimeout(saveDraft, 1000);
+        }
+      });
+      el.addEventListener("change", () => {
+        runCalculation();
+        updateQuickProfitHint();
+      });
     });
 
     bindQuickAddButtons();
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (e) => {
+      // Ctrl+S: Save product or toggle auto-save
+      if (e.ctrlKey && e.key === "s") {
+        e.preventDefault();
+        if (autoSaveEnabled) {
+          saveCurrentProduct();
+        } else {
+          toggleAutoSave();
+        }
+      }
+      // Ctrl+C: Copy SKU when SKU field is focused
+      if (e.ctrlKey && e.key === "c" && document.activeElement === $("skuInput")) {
+        e.preventDefault();
+        copySkuToClipboard();
+      }
+    });
   }
 
   function init() {
@@ -659,6 +829,14 @@
     renderRecentProducts();
     renderCharts();
     renderReportPreview();
+    
+    // Load auto-save preference
+    autoSaveEnabled = Storage.getAutoSave() ?? true;
+    updateAutoSaveButton();
+    
+    // Load draft if exists
+    loadDraft();
+    
     runCalculation();
     bindEvents();
   }
