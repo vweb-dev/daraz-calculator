@@ -85,6 +85,65 @@
 
   // ---------- FORM ----------
 
+  function validateNumber(value, fieldName) {
+    const num = Calc.toNumber(value);
+    if (value && isNaN(num)) {
+      return { valid: false, error: `${fieldName} must be a valid number` };
+    }
+    if (num < 0) {
+      return { valid: false, error: `${fieldName} cannot be negative` };
+    }
+    return { valid: true, value: num };
+  }
+
+  function validateForm() {
+    const data = getFormData();
+    const errors = [];
+
+    // Buying price is required
+    if (!data.buyingPrice) {
+      errors.push(currentLang === "ru" ? "Buying price zaroori hai" : "Buying price is required");
+    } else {
+      const result = validateNumber(data.buyingPrice, currentLang === "ru" ? "Buying price" : "Buying price");
+      if (!result.valid) errors.push(result.error);
+    }
+
+    // Validate optional numeric fields
+    const optionalFields = [
+      { value: data.packagingCost, name: currentLang === "ru" ? "Packaging cost" : "Packaging cost" },
+      { value: data.currentSellingPrice, name: currentLang === "ru" ? "Selling price" : "Selling price" },
+      { value: data.competitorTotalPrice, name: currentLang === "ru" ? "Competitor price" : "Competitor price" },
+      { value: data.competitorQty, name: currentLang === "ru" ? "Competitor qty" : "Competitor qty" }
+    ];
+
+    optionalFields.forEach(field => {
+      if (field.value) {
+        const result = validateNumber(field.value, field.name);
+        if (!result.valid) errors.push(result.error);
+      }
+    });
+
+    // Bundle qty must be positive integer
+    const bundleQty = Calc.toNumber(data.bundleQty);
+    if (bundleQty && (bundleQty < 1 || !Number.isInteger(bundleQty))) {
+      errors.push(currentLang === "ru" ? "Bundle quantity must be a positive whole number" : "Bundle quantity must be a positive whole number");
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+      data
+    };
+  }
+
+  function showValidationErrors(errors) {
+    const errorList = errors.map(err => `• ${err}`).join("\n");
+    alert(currentLang === "ru" 
+      ? "Please correct the following errors:\n" + errorList
+      : "Please correct the following errors:\n" + errorList
+    );
+  }
+
   function getFormData() {
     return {
       sku: getValue("skuInput").trim(),
@@ -270,12 +329,14 @@
   // ---------- SAVE PRODUCT ----------
 
   function saveCurrentProduct() {
-    const data = getFormData();
-
-    if (!Calc.toNumber(data.buyingPrice)) {
-      alert(currentLang === "ru" ? "Buying price enter karo." : "Please enter buying price.");
+    const validation = validateForm();
+    
+    if (!validation.valid) {
+      showValidationErrors(validation.errors);
       return;
     }
+
+    const data = validation.data;
 
     const result = Calc.runPricingEngine({
       ...data,
@@ -530,6 +591,39 @@
 
     const clearBtn = $("clearFormBtn");
     if (clearBtn) clearBtn.addEventListener("click", clearForm);
+
+    const exportBtn = $("exportDataBtn");
+    if (exportBtn) exportBtn.addEventListener("click", () => Storage.downloadExport());
+
+    const importInput = $("importFileInput");
+    if (importInput) {
+      importInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const result = Storage.importData(event.target.result);
+          if (result.success) {
+            alert(currentLang === "ru" 
+              ? `Import successful! ${result.count} products loaded.`
+              : `Import successful! ${result.count} products loaded.`
+            );
+            renderRecentProducts();
+            renderCharts();
+            renderReportPreview();
+            runCalculation();
+          } else {
+            alert(currentLang === "ru"
+              ? `Import failed: ${result.error}`
+              : `Import failed: ${result.error}`
+            );
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = ""; // reset for re-import
+      });
+    }
 
     const showAssumptionsBtn = $("showAssumptionsBtn");
     if (showAssumptionsBtn) showAssumptionsBtn.addEventListener("click", toggleAssumptions);

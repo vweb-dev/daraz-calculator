@@ -106,6 +106,63 @@
     removeItem(storageKeys.adminAuth);
   }
 
+  // ---------- EXPORT / IMPORT ----------
+
+  function exportData() {
+    const data = {
+      version: "1.0",
+      exportedAt: new Date().toISOString(),
+      products: getProducts(),
+      settings: getSettings(),
+      language: getLanguage()
+    };
+    return JSON.stringify(data, null, 2);
+  }
+
+  function importData(jsonString) {
+    try {
+      const data = JSON.parse(jsonString);
+      
+      if (!data.version || !data.products || !Array.isArray(data.products)) {
+        throw new Error("Invalid data format");
+      }
+
+      saveProducts(data.products);
+      
+      if (data.settings) {
+        saveSettings(data.settings);
+      }
+      
+      if (data.language) {
+        setLanguage(data.language);
+      }
+
+      return {
+        success: true,
+        count: data.products.length,
+        message: `Imported ${data.products.length} products`
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.message || "Failed to import data"
+      };
+    }
+  }
+
+  function downloadExport() {
+    const jsonData = exportData();
+    const blob = new Blob([jsonData], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `daraz-calculator-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   // ---------- EXPORT GLOBAL ----------
 
   window.AppStorage = {
@@ -133,6 +190,11 @@
 
     // utils
     generateId,
-    clearAllData
+    clearAllData,
+
+    // export/import
+    exportData,
+    importData,
+    downloadExport
   };
 })();

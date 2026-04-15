@@ -274,15 +274,37 @@
     const id = getValue("editProductId");
     if (!id) return;
 
+    // Validate inputs before saving
+    const sku = getValue("editSkuInput").trim();
+    const buyingPriceRaw = getValue("editBuyingPriceInput");
+    
+    if (!buyingPriceRaw || !Calc.toNumber(buyingPriceRaw)) {
+      alert(currentLang === "ru" 
+        ? "Buying price zaroori hai" 
+        : "Buying price is required"
+      );
+      return;
+    }
+
     const updated = {
-      sku: getValue("editSkuInput").trim(),
-      buyingPrice: Calc.toNumber(getValue("editBuyingPriceInput")),
+      sku: sku,
+      buyingPrice: Calc.toNumber(buyingPriceRaw),
       packagingCost: Calc.toNumber(getValue("editPackagingCostInput")),
       currentSellingPrice: Calc.toNumber(getValue("editCurrentSellingPriceInput")),
       bundleQty: Calc.toNumber(getValue("editBundleQtyInput")),
       competitorTotalPrice: Calc.toNumber(getValue("editCompetitorTotalPriceInput")),
       competitorQty: Calc.toNumber(getValue("editCompetitorQtyInput"))
     };
+
+    // Validate numeric fields are not negative
+    if (updated.packagingCost < 0 || updated.currentSellingPrice < 0 || 
+        updated.competitorTotalPrice < 0 || updated.competitorQty < 0) {
+      alert(currentLang === "ru"
+        ? "Values cannot be negative"
+        : "Values cannot be negative"
+      );
+      return;
+    }
 
     const result = Calc.runPricingEngine({
       ...updated,
@@ -330,6 +352,37 @@
 
     const sort = $("savedSortFilter");
     if (sort) sort.addEventListener("change", renderSavedProducts);
+
+    const exportBtn = $("exportDataBtn");
+    if (exportBtn) exportBtn.addEventListener("click", () => Storage.downloadExport());
+
+    const importInput = $("importFileInput");
+    if (importInput) {
+      importInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const result = Storage.importData(event.target.result);
+          if (result.success) {
+            alert(currentLang === "ru" 
+              ? `Import successful! ${result.count} products loaded.`
+              : `Import successful! ${result.count} products loaded.`
+            );
+            allProducts = Storage.getProducts();
+            renderAll();
+          } else {
+            alert(currentLang === "ru"
+              ? `Import failed: ${result.error}`
+              : `Import failed: ${result.error}`
+            );
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = ""; // reset for re-import
+      });
+    }
 
     const closeBtn = $("closeEditModalBtn");
     if (closeBtn) closeBtn.addEventListener("click", closeEditModal);
