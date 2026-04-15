@@ -3,7 +3,8 @@ window.APP_CONFIG = {
     settings: "daraz_calc_settings_v1",
     products: "daraz_calc_products_v1",
     language: "daraz_calc_lang_v1",
-    adminAuth: "daraz_calc_admin_auth_v1"
+    adminAuth: "daraz_calc_admin_auth_v1",
+    competitors: "daraz_calc_competitors_v1"
   },
 
   admin: {

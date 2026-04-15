@@ -119,6 +119,23 @@
           </div>
         </div>
       </section>
+
+      <!-- COMPETITOR WATCHLIST -->
+      <section class="panel glass">
+        <div class="panel__header">
+          <div>
+            <h2 class="panel__title">Competitor Watchlist</h2>
+            <p class="panel__subtitle">Manually track competitor prices and get instant comparisons.</p>
+          </div>
+          <button class="btn btn--primary" id="addCompetitorBtn" type="button">+ Add Competitor</button>
+        </div>
+
+        <div class="panel__body">
+          <div class="competitor-watchlist" id="competitorWatchlist">
+            <!-- injected by JS -->
+          </div>
+        </div>
+      </section>
     </main>
 
     <!-- EDIT MODAL -->
@@ -181,6 +198,56 @@
           <div class="action-row" style="margin-top:16px;">
             <button class="btn btn--primary" id="saveEditedProductBtn" type="button">Save Changes</button>
             <button class="btn btn--ghost" id="cancelEditBtn" type="button">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPETITOR MODAL -->
+    <div class="modal-backdrop hidden" id="competitorModalBackdrop">
+      <div class="modal-panel glass">
+        <div class="panel__header">
+          <div>
+            <h2 class="panel__title">Add/Edit Competitor</h2>
+            <p class="panel__subtitle">Track competitor pricing for comparison.</p>
+          </div>
+          <button class="icon-btn" id="closeCompetitorModalBtn" type="button">✕</button>
+        </div>
+
+        <div class="panel__body">
+          <input type="hidden" id="competitorId" />
+          <input type="hidden" id="competitorProductId" />
+
+          <div class="form-grid form-grid--main">
+            <div class="field field--full">
+              <label for="competitorNameInput">Competitor Name</label>
+              <input id="competitorNameInput" type="text" placeholder="e.g. Seller XYZ" />
+            </div>
+
+            <div class="field field--full">
+              <label for="competitorUrlInput">Product URL (Optional)</label>
+              <input id="competitorUrlInput" type="url" placeholder="https://..." />
+            </div>
+
+            <div class="field">
+              <label for="competitorPriceInput">Competitor Total Price</label>
+              <input id="competitorPriceInput" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 180" />
+            </div>
+
+            <div class="field">
+              <label for="competitorQuantityInput">Competitor Quantity</label>
+              <input id="competitorQuantityInput" type="number" inputmode="decimal" step="1" placeholder="e.g. 6" />
+            </div>
+
+            <div class="field">
+              <label for="competitorNotesInput">Notes (Optional)</label>
+              <input id="competitorNotesInput" type="text" placeholder="Supplier info, shipping, etc." />
+            </div>
+          </div>
+
+          <div class="action-row" style="margin-top:16px;">
+            <button class="btn btn--primary" id="saveCompetitorBtn" type="button">Save Competitor</button>
+            <button class="btn btn--ghost" id="cancelCompetitorBtn" type="button">Cancel</button>
           </div>
         </div>
       </div>

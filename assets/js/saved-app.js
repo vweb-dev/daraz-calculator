@@ -6,6 +6,7 @@
   let currentLang = Storage.getLanguage() || defaults.language;
   let settings = Storage.getSettings();
   let allProducts = Storage.getProducts();
+  let allCompetitors = Storage.getCompetitors() || [];
 
   // ---------- HELPERS ----------
 
@@ -182,6 +183,10 @@
               <button class="btn btn--ghost delete-product-btn" type="button" data-id="${product.id}">
                 ${currentLang === "ru" ? "Delete" : "Delete"}
               </button>
+
+              <button class="btn btn--ghost add-competitor-for-product-btn" type="button" data-id="${product.id}" title="Add competitor for this product">
+                ${currentLang === "ru" ? "+ Competitor" : "+ Competitor"}
+              </button>
             </div>
           </article>
         `;
@@ -210,6 +215,13 @@
       btn.addEventListener("click", () => {
         const productId = btn.getAttribute("data-id");
         deleteProduct(productId);
+      });
+    });
+
+    qsa(".add-competitor-for-product-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const productId = btn.getAttribute("data-id");
+        openCompetitorModal(productId);
       });
     });
   }
@@ -330,12 +342,197 @@
     renderAll();
   }
 
+  // ---------- COMPETITOR WATCHLIST ----------
+
+  function openCompetitorModal(productId = null) {
+    setValue("competitorId", "");
+    setValue("competitorProductId", productId || "");
+    setValue("competitorNameInput", "");
+    setValue("competitorUrlInput", "");
+    setValue("competitorPriceInput", "");
+    setValue("competitorQuantityInput", "");
+    setValue("competitorNotesInput", "");
+    $("competitorModalBackdrop").classList.remove("hidden");
+  }
+
+  function openEditCompetitorModal(competitorId) {
+    const competitor = allCompetitors.find((c) => c.id === competitorId);
+    if (!competitor) return;
+
+    setValue("competitorId", competitor.id);
+    setValue("competitorProductId", competitor.productId || "");
+    setValue("competitorNameInput", competitor.name || "");
+    setValue("competitorUrlInput", competitor.url || "");
+    setValue("competitorPriceInput", competitor.price || "");
+    setValue("competitorQuantityInput", competitor.quantity || "");
+    setValue("competitorNotesInput", competitor.notes || "");
+    $("competitorModalBackdrop").classList.remove("hidden");
+  }
+
+  function closeCompetitorModal() {
+    $("competitorModalBackdrop").classList.add("hidden");
+  }
+
+  function saveCompetitor() {
+    const id = getValue("competitorId");
+    const productId = getValue("competitorProductId");
+    const name = getValue("competitorNameInput").trim();
+    const price = Calc.toNumber(getValue("competitorPriceInput"));
+    const quantity = Calc.toNumber(getValue("competitorQuantityInput"));
+
+    if (!name) {
+      alert(currentLang === "ru" ? "Competitor name zaroori hai" : "Competitor name is required");
+      return;
+    }
+
+    if (!price || price <= 0) {
+      alert(currentLang === "ru" ? "Price zaroori hai" : "Price is required");
+      return;
+    }
+
+    if (!quantity || quantity <= 0) {
+      alert(currentLang === "ru" ? "Quantity zaroori hai" : "Quantity is required");
+      return;
+    }
+
+    const competitorData = {
+      name: name,
+      productId: productId,
+      url: getValue("competitorUrlInput"),
+      price: price,
+      quantity: quantity,
+      notes: getValue("competitorNotesInput"),
+      perPiece: Calc.round2(price / quantity),
+      updatedAt: new Date().toISOString()
+    };
+
+    if (id) {
+      // Update existing
+      Storage.updateCompetitor(id, competitorData);
+    } else {
+      // Add new
+      competitorData.id = Storage.generateId();
+      competitorData.createdAt = new Date().toISOString();
+      Storage.addCompetitor(competitorData);
+    }
+
+    allCompetitors = Storage.getCompetitors() || [];
+    closeCompetitorModal();
+    renderCompetitorWatchlist();
+  }
+
+  function deleteCompetitor(competitorId) {
+    const confirmText = currentLang === "ru"
+      ? "Kya aap is competitor ko delete karna chahtay hain?"
+      : "Do you want to delete this competitor?";
+
+    if (!confirm(confirmText)) return;
+
+    Storage.deleteCompetitor(competitorId);
+    allCompetitors = Storage.getCompetitors() || [];
+    renderCompetitorWatchlist();
+  }
+
+  function renderCompetitorWatchlist() {
+    const wrap = $("competitorWatchlist");
+    if (!wrap) return;
+
+    if (!allCompetitors.length) {
+      wrap.innerHTML = `
+        <article class="recent-card glass-soft">
+          <div class="recent-card__top">
+            <strong class="recent-card__name">${currentLang === "ru" ? "Koi competitor nahi" : "No competitors tracked"}</strong>
+          </div>
+          <p class="recent-card__note">
+            ${currentLang === "ru" ? "+ Add Competitor button dabayen" : "Click + Add Competitor to start tracking"}
+          </p>
+        </article>
+      `;
+      return;
+    }
+
+    wrap.innerHTML = allCompetitors
+      .map((competitor) => {
+        const productName = competitor.productId
+          ? (allProducts.find(p => p.id === competitor.productId)?.sku || "Unknown Product")
+          : "General";
+        
+        const yourProduct = competitor.productId ? allProducts.find(p => p.id === competitor.productId) : null;
+        const yourPerPiece = yourProduct && yourProduct.currentSellingPrice && yourProduct.bundleQty
+          ? Calc.round2(yourProduct.currentSellingPrice / yourProduct.bundleQty)
+          : 0;
+        
+        const gap = yourPerPiece ? Calc.round2(yourPerPiece - competitor.perPiece) : 0;
+        let positionClass = "badge--neutral";
+        let positionText = "N/A";
+        
+        if (yourPerPiece) {
+          if (gap > 0.5) {
+            positionClass = "badge--danger";
+            positionText = currentLang === "ru" ? "Aap mehngay ho" : "You're Expensive";
+          } else if (gap < -0.5) {
+            positionClass = "badge--success";
+            positionText = currentLang === "ru" ? "Aap saste ho" : "You're Cheaper";
+          } else {
+            positionClass = "badge--warning";
+            positionText = currentLang === "ru" ? "Barabar" : "Similar";
+          }
+        }
+
+        return `
+          <article class="recent-card glass-soft">
+            <div class="recent-card__top">
+              <strong class="recent-card__name">${escapeHtml(competitor.name)}</strong>
+              <span class="badge ${positionClass}">${escapeHtml(positionText)}</span>
+            </div>
+            
+            <div class="recent-card__meta">
+              <span>Product: ${escapeHtml(productName)}</span>
+              <span>${Calc.formatCurrency(competitor.price)} / ${competitor.quantity} pcs</span>
+            </div>
+            
+            <div class="recent-card__meta" style="margin-top:8px;">
+              <span>Per piece: ${Calc.formatCurrency(competitor.perPiece)}</span>
+              ${yourPerPiece ? `<span>Gap: ${gap >= 0 ? '+' : ''}${Calc.formatCurrency(gap)}</span>` : ''}
+            </div>
+            
+            ${competitor.notes ? `<p class="recent-card__note" style="margin-top:8px;">${escapeHtml(competitor.notes)}</p>` : ''}
+            
+            <div class="action-row" style="margin-top:12px;">
+              <button class="btn btn--ghost edit-competitor-btn" type="button" data-id="${competitor.id}">
+                ${currentLang === "ru" ? "Edit" : "Edit"}
+              </button>
+              
+              <button class="btn btn--ghost delete-competitor-btn" type="button" data-id="${competitor.id}">
+                ${currentLang === "ru" ? "Delete" : "Delete"}
+              </button>
+            </div>
+          </article>
+        `;
+      })
+      .join("");
+
+    qsa(".edit-competitor-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        openEditCompetitorModal(btn.getAttribute("data-id"));
+      });
+    });
+
+    qsa(".delete-competitor-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        deleteCompetitor(btn.getAttribute("data-id"));
+      });
+    });
+  }
+
   // ---------- RENDER ----------
 
   function renderAll() {
     settings = Storage.getSettings();
     allProducts = Storage.getProducts();
+    allCompetitors = Storage.getCompetitors() || [];
     renderSavedProducts();
+    renderCompetitorWatchlist();
   }
 
   // ---------- INIT ----------
@@ -397,6 +594,26 @@
     if (backdrop) {
       backdrop.addEventListener("click", (e) => {
         if (e.target === backdrop) closeEditModal();
+      });
+    }
+
+    // Competitor watchlist events
+    const addCompetitorBtn = $("addCompetitorBtn");
+    if (addCompetitorBtn) addCompetitorBtn.addEventListener("click", () => openCompetitorModal());
+
+    const closeCompetitorModalBtn = $("closeCompetitorModalBtn");
+    if (closeCompetitorModalBtn) closeCompetitorModalBtn.addEventListener("click", closeCompetitorModal);
+
+    const cancelCompetitorBtn = $("cancelCompetitorBtn");
+    if (cancelCompetitorBtn) cancelCompetitorBtn.addEventListener("click", closeCompetitorModal);
+
+    const saveCompetitorBtn = $("saveCompetitorBtn");
+    if (saveCompetitorBtn) saveCompetitorBtn.addEventListener("click", saveCompetitor);
+
+    const competitorBackdrop = $("competitorModalBackdrop");
+    if (competitorBackdrop) {
+      competitorBackdrop.addEventListener("click", (e) => {
+        if (e.target === competitorBackdrop) closeCompetitorModal();
       });
     }
   }

@@ -93,6 +93,35 @@
     return products.slice(0, limit);
   }
 
+  // ---------- COMPETITORS ----------
+
+  function getCompetitors() {
+    return getItem(storageKeys.competitors, []);
+  }
+
+  function saveCompetitors(competitors) {
+    setItem(storageKeys.competitors, competitors);
+  }
+
+  function addCompetitor(competitor) {
+    const competitors = getCompetitors();
+    competitors.unshift(competitor);
+    saveCompetitors(competitors);
+  }
+
+  function updateCompetitor(id, updatedData) {
+    const competitors = getCompetitors();
+    const updated = competitors.map((c) =>
+      c.id === id ? { ...c, ...updatedData } : c
+    );
+    saveCompetitors(updated);
+  }
+
+  function deleteCompetitor(id) {
+    const competitors = getCompetitors().filter((c) => c.id !== id);
+    saveCompetitors(competitors);
+  }
+
   // ---------- UTIL ----------
 
   function generateId() {
@@ -113,6 +142,7 @@
       version: "1.0",
       exportedAt: new Date().toISOString(),
       products: getProducts(),
+      competitors: getCompetitors(),
       settings: getSettings(),
       language: getLanguage()
     };
@@ -129,6 +159,10 @@
 
       saveProducts(data.products);
       
+      if (data.competitors && Array.isArray(data.competitors)) {
+        saveCompetitors(data.competitors);
+      }
+      
       if (data.settings) {
         saveSettings(data.settings);
       }
@@ -140,7 +174,8 @@
       return {
         success: true,
         count: data.products.length,
-        message: `Imported ${data.products.length} products`
+        competitorCount: data.competitors ? data.competitors.length : 0,
+        message: `Imported ${data.products.length} products and ${data.competitors ? data.competitors.length : 0} competitors`
       };
     } catch (err) {
       return {
@@ -187,6 +222,13 @@
     updateProduct,
     deleteProduct,
     getRecentProducts,
+
+    // competitors
+    getCompetitors,
+    saveCompetitors,
+    addCompetitor,
+    updateCompetitor,
+    deleteCompetitor,
 
     // utils
     generateId,
