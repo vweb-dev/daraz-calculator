@@ -69,9 +69,14 @@
                         </p>
                     </div>
 
-                    <button class="icon-btn" type="button" id="toggleAssumptionsBtn" aria-label="Toggle assumptions">
-                        <span>⋯</span>
-                    </button>
+                    <div class="header-actions">
+                        <button class="icon-btn" type="button" id="autoSaveToggle" aria-label="Toggle auto-save" title="Auto-save draft (Ctrl+S)">
+                            <span>💾</span>
+                        </button>
+                        <button class="icon-btn" type="button" id="toggleAssumptionsBtn" aria-label="Toggle assumptions">
+                            <span>⋯</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="panel__body">
@@ -85,17 +90,29 @@
                         <button class="btn btn--ghost" id="clearFormBtn" type="button" data-i18n="clear">
                             Clear
                         </button>
+                        <button class="btn btn--ghost" id="exportDataBtn" type="button" title="Export all data">
+                            ⬇ Export
+                        </button>
+                        <label class="btn btn--ghost" for="importFileInput" title="Import data from backup file">
+                            ⬆ Import
+                        </label>
+                        <input type="file" id="importFileInput" accept=".json" style="display:none;" />
                     </div>
 
                     <div class="form-grid form-grid--main">
                         <div class="field field--full">
                             <label for="skuInput" data-i18n="skuProductName">SKU / Product Name</label>
-                            <input id="skuInput" type="text" placeholder="e.g. pc silver nosepin"
-                                data-i18n-placeholder="skuPlaceholder" />
+                            <div class="input-with-actions">
+                                <input id="skuInput" type="text" placeholder="e.g. pc silver nosepin"
+                                    data-i18n-placeholder="skuPlaceholder" />
+                                <button class="copy-btn" type="button" id="copySkuBtn" title="Copy SKU to clipboard (Ctrl+C)" aria-label="Copy SKU">
+                                    📋
+                                </button>
+                            </div>
                         </div>
 
                         <div class="field">
-                            <label for="buyingPriceInput" data-i18n="buyingPrice">Buying Price</label>
+                            <label for="buyingPriceInput" data-i18n="buyingPrice">Buying Price *</label>
                             <input id="buyingPriceInput" type="number" inputmode="decimal" placeholder="e.g. 10"
                                 data-i18n-placeholder="buyingPricePlaceholder" />
                         </div>
@@ -108,8 +125,11 @@
                         <div class="field">
                             <label for="currentSellingPriceInput" data-i18n="currentSellingPrice">Current Selling
                                 Price</label>
-                            <input id="currentSellingPriceInput" type="number" inputmode="decimal" placeholder="e.g. 35"
-                                data-i18n-placeholder="sellingPricePlaceholder" />
+                            <div class="input-with-hint">
+                                <input id="currentSellingPriceInput" type="number" inputmode="decimal" placeholder="e.g. 35"
+                                    data-i18n-placeholder="sellingPricePlaceholder" />
+                                <span class="field-hint" id="quickProfitHint"></span>
+                            </div>
                         </div>
 
                         <div class="field">

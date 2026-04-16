@@ -85,6 +85,65 @@
 
   // ---------- FORM ----------
 
+  function validateNumber(value, fieldName) {
+    const num = Calc.toNumber(value);
+    if (value && isNaN(num)) {
+      return { valid: false, error: `${fieldName} must be a valid number` };
+    }
+    if (num < 0) {
+      return { valid: false, error: `${fieldName} cannot be negative` };
+    }
+    return { valid: true, value: num };
+  }
+
+  function validateForm() {
+    const data = getFormData();
+    const errors = [];
+
+    // Buying price is required
+    if (!data.buyingPrice) {
+      errors.push(currentLang === "ru" ? "Buying price zaroori hai" : "Buying price is required");
+    } else {
+      const result = validateNumber(data.buyingPrice, currentLang === "ru" ? "Buying price" : "Buying price");
+      if (!result.valid) errors.push(result.error);
+    }
+
+    // Validate optional numeric fields
+    const optionalFields = [
+      { value: data.packagingCost, name: currentLang === "ru" ? "Packaging cost" : "Packaging cost" },
+      { value: data.currentSellingPrice, name: currentLang === "ru" ? "Selling price" : "Selling price" },
+      { value: data.competitorTotalPrice, name: currentLang === "ru" ? "Competitor price" : "Competitor price" },
+      { value: data.competitorQty, name: currentLang === "ru" ? "Competitor qty" : "Competitor qty" }
+    ];
+
+    optionalFields.forEach(field => {
+      if (field.value) {
+        const result = validateNumber(field.value, field.name);
+        if (!result.valid) errors.push(result.error);
+      }
+    });
+
+    // Bundle qty must be positive integer
+    const bundleQty = Calc.toNumber(data.bundleQty);
+    if (bundleQty && (bundleQty < 1 || !Number.isInteger(bundleQty))) {
+      errors.push(currentLang === "ru" ? "Bundle quantity must be a positive whole number" : "Bundle quantity must be a positive whole number");
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+      data
+    };
+  }
+
+  function showValidationErrors(errors) {
+    const errorList = errors.map(err => `• ${err}`).join("\n");
+    alert(currentLang === "ru" 
+      ? "Please correct the following errors:\n" + errorList
+      : "Please correct the following errors:\n" + errorList
+    );
+  }
+
   function getFormData() {
     return {
       sku: getValue("skuInput").trim(),
@@ -270,12 +329,14 @@
   // ---------- SAVE PRODUCT ----------
 
   function saveCurrentProduct() {
-    const data = getFormData();
-
-    if (!Calc.toNumber(data.buyingPrice)) {
-      alert(currentLang === "ru" ? "Buying price enter karo." : "Please enter buying price.");
+    const validation = validateForm();
+    
+    if (!validation.valid) {
+      showValidationErrors(validation.errors);
       return;
     }
+
+    const data = validation.data;
 
     const result = Calc.runPricingEngine({
       ...data,
@@ -516,6 +577,141 @@
     window.print();
   }
 
+  // ---------- COPY TO CLIPBOARD ----------
+
+  async function copySkuToClipboard() {
+    const sku = getValue("skuInput").trim();
+    if (!sku) {
+      showToast(currentLang === "ru" ? "SKU khaali hai" : "SKU is empty", "warning");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(sku);
+      showToast(currentLang === "ru" ? "SKU clipboard mein copy ho gaya" : "SKU copied to clipboard", "success");
+    } catch (err) {
+      // Fallback for older browsers
+      const textarea = document.createElement("textarea");
+      textarea.value = sku;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      showToast(currentLang === "ru" ? "SKU copy ho gaya" : "SKU copied", "success");
+    }
+  }
+
+  // ---------- AUTO-SAVE DRAFT ----------
+
+  let autoSaveEnabled = true;
+  let autoSaveTimer = null;
+
+  function toggleAutoSave() {
+    autoSaveEnabled = !autoSaveEnabled;
+    Storage.setAutoSave(autoSaveEnabled);
+    updateAutoSaveButton();
+    
+    if (autoSaveEnabled) {
+      showToast(currentLang === "ru" ? "Auto-save enabled" : "Auto-save enabled", "success");
+      saveDraft();
+    } else {
+      showToast(currentLang === "ru" ? "Auto-save disabled" : "Auto-save disabled", "warning");
+    }
+  }
+
+  function updateAutoSaveButton() {
+    const btn = $("autoSaveToggle");
+    if (!btn) return;
+    
+    btn.style.opacity = autoSaveEnabled ? "1" : "0.5";
+    btn.title = autoSaveEnabled 
+      ? (currentLang === "ru" ? "Auto-save enabled (Ctrl+S)" : "Auto-save enabled (Ctrl+S)")
+      : (currentLang === "ru" ? "Auto-save disabled" : "Auto-save disabled");
+  }
+
+  function saveDraft() {
+    if (!autoSaveEnabled) return;
+    
+    const data = getFormData();
+    if (!data.buyingPrice && !data.sku) return; // Don't save empty drafts
+    
+    Storage.saveDraft(data);
+    
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+      showToast(currentLang === "ru" ? "Draft saved" : "Draft saved", "success");
+    }, 300);
+  }
+
+  function loadDraft() {
+    const draft = Storage.getDraft();
+    if (draft && draft.sku) {
+      setFormData(draft);
+      runCalculation();
+    }
+  }
+
+  // ---------- TOAST NOTIFICATIONS ----------
+
+  function showToast(message, type = "info") {
+    // Remove existing toast
+    const existingToast = document.querySelector(".toast-notification");
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement("div");
+    toast.className = `toast-notification toast--${type}`;
+    toast.textContent = message;
+    
+    // Styles inline for simplicity
+    Object.assign(toast.style, {
+      position: "fixed",
+      bottom: "100px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      padding: "12px 24px",
+      borderRadius: "14px",
+      background: type === "success" ? "rgba(85, 214, 168, 0.9)" : 
+                  type === "warning" ? "rgba(246, 195, 107, 0.9)" :
+                  "rgba(122, 162, 255, 0.9)",
+      color: "#07111f",
+      fontWeight: "600",
+      fontSize: "0.9rem",
+      zIndex: "10000",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+      animation: "toastSlideUp 0.3s ease-out"
+    });
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.animation = "toastFadeOut 0.3s ease-out";
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+  }
+
+  // ---------- QUICK PROFIT HINT ----------
+
+  function updateQuickProfitHint() {
+    const hintEl = $("quickProfitHint");
+    if (!hintEl) return;
+
+    const buyingPrice = Calc.toNumber(getValue("buyingPriceInput"));
+    const sellingPrice = Calc.toNumber(getValue("currentSellingPriceInput"));
+    const packagingCost = Calc.toNumber(getValue("packagingCostInput"));
+
+    if (!buyingPrice || !sellingPrice) {
+      hintEl.textContent = "";
+      hintEl.className = "field-hint";
+      return;
+    }
+
+    const quickProfit = sellingPrice - buyingPrice - packagingCost;
+    const profitSign = quickProfit >= 0 ? "+" : "";
+    
+    hintEl.textContent = `${currentLang === "ru" ? "Quick profit" : "Quick profit"}: ${profitSign}${Calc.formatCurrency(quickProfit)}`;
+    hintEl.className = `field-hint ${quickProfit >= 0 ? "profit-positive" : "profit-negative"}`;
+  }
+
   // ---------- INIT ----------
 
   function bindEvents() {
@@ -531,6 +727,37 @@
     const clearBtn = $("clearFormBtn");
     if (clearBtn) clearBtn.addEventListener("click", clearForm);
 
+    const exportBtn = $("exportDataBtn");
+    if (exportBtn) exportBtn.addEventListener("click", () => Storage.downloadExport());
+
+    const importInput = $("importFileInput");
+    if (importInput) {
+      importInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const result = Storage.importData(event.target.result);
+          if (result.success) {
+            showToast(currentLang === "ru" 
+              ? `Import successful! ${result.count} products loaded.`
+              : `Import successful! ${result.count} products loaded.`, "success");
+            renderRecentProducts();
+            renderCharts();
+            renderReportPreview();
+            runCalculation();
+          } else {
+            showToast(currentLang === "ru"
+              ? `Import failed: ${result.error}`
+              : `Import failed: ${result.error}`, "warning");
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = ""; // reset for re-import
+      });
+    }
+
     const showAssumptionsBtn = $("showAssumptionsBtn");
     if (showAssumptionsBtn) showAssumptionsBtn.addEventListener("click", toggleAssumptions);
 
@@ -539,6 +766,14 @@
 
     const printBtn = $("printReportBtn");
     if (printBtn) printBtn.addEventListener("click", printReport);
+
+    // Copy SKU button
+    const copySkuBtn = $("copySkuBtn");
+    if (copySkuBtn) copySkuBtn.addEventListener("click", copySkuToClipboard);
+
+    // Auto-save toggle
+    const autoSaveToggleBtn = $("autoSaveToggle");
+    if (autoSaveToggleBtn) autoSaveToggleBtn.addEventListener("click", toggleAutoSave);
 
     // auto-calc on change
     [
@@ -552,11 +787,40 @@
     ].forEach((id) => {
       const el = $(id);
       if (!el) return;
-      el.addEventListener("input", runCalculation);
-      el.addEventListener("change", runCalculation);
+      el.addEventListener("input", () => {
+        runCalculation();
+        updateQuickProfitHint();
+        // Debounced auto-save on input changes
+        if (autoSaveEnabled) {
+          clearTimeout(autoSaveTimer);
+          autoSaveTimer = setTimeout(saveDraft, 1000);
+        }
+      });
+      el.addEventListener("change", () => {
+        runCalculation();
+        updateQuickProfitHint();
+      });
     });
 
     bindQuickAddButtons();
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (e) => {
+      // Ctrl+S: Save product or toggle auto-save
+      if (e.ctrlKey && e.key === "s") {
+        e.preventDefault();
+        if (autoSaveEnabled) {
+          saveCurrentProduct();
+        } else {
+          toggleAutoSave();
+        }
+      }
+      // Ctrl+C: Copy SKU when SKU field is focused
+      if (e.ctrlKey && e.key === "c" && document.activeElement === $("skuInput")) {
+        e.preventDefault();
+        copySkuToClipboard();
+      }
+    });
   }
 
   function init() {
@@ -565,6 +829,14 @@
     renderRecentProducts();
     renderCharts();
     renderReportPreview();
+    
+    // Load auto-save preference
+    autoSaveEnabled = Storage.getAutoSave() ?? true;
+    updateAutoSaveButton();
+    
+    // Load draft if exists
+    loadDraft();
+    
     runCalculation();
     bindEvents();
   }
