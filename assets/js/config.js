@@ -120,6 +120,8 @@ window.APP_CONFIG = {
       recommendedPrice: "Recommended Price",
       discountSafePrice: "10% Discount-Safe Price",
       bundleHint: "Bundle Hint",
+      useMinimumPrice: "Use Minimum Price",
+      useRecommendedPrice: "Use Recommended Price",
 
       currentReality: "Current Reality",
       profitLoss: "Profit / Loss",
@@ -205,6 +207,8 @@ window.APP_CONFIG = {
       recommendedPrice: "Recommended Price",
       discountSafePrice: "10% Discount-Safe Price",
       bundleHint: "Bundle Hint",
+      useMinimumPrice: "Minimum Price Lagao",
+      useRecommendedPrice: "Recommended Price Lagao",
 
       currentReality: "Current Reality",
       profitLoss: "Munafa / Nuksan",

@@ -5,6 +5,7 @@
 
   let currentLang = Storage.getLanguage() || defaults.language;
   let settings = Storage.getSettings();
+  let latestResult = null;
 
   // ---------- DOM HELPERS ----------
 
@@ -567,8 +568,30 @@
     renderOverview(result);
     renderCharts();
     renderReportPreview();
+    latestResult = result;
 
     return result;
+  }
+
+  function applySuggestedPrice(type) {
+    const result = latestResult || runCalculation();
+    const nextPrice = type === "minimum" ? result.minimumPrice : result.recommendedPrice;
+
+    if (!nextPrice || nextPrice <= 0) {
+      showToast(currentLang === "ru" ? "Price suggestion available nahi" : "No valid price suggestion available", "warning");
+      return;
+    }
+
+    setValue("currentSellingPriceInput", nextPrice.toFixed(2));
+    runCalculation();
+    updateQuickProfitHint();
+
+    showToast(
+      type === "minimum"
+        ? (currentLang === "ru" ? "Minimum price apply ho gaya" : "Minimum price applied")
+        : (currentLang === "ru" ? "Recommended price apply ho gaya" : "Recommended price applied"),
+      "success"
+    );
   }
 
   // ---------- PRINT ----------
@@ -726,6 +749,16 @@
 
     const clearBtn = $("clearFormBtn");
     if (clearBtn) clearBtn.addEventListener("click", clearForm);
+    
+    const useMinimumPriceBtn = $("useMinimumPriceBtn");
+    if (useMinimumPriceBtn) {
+      useMinimumPriceBtn.addEventListener("click", () => applySuggestedPrice("minimum"));
+    }
+
+    const useRecommendedPriceBtn = $("useRecommendedPriceBtn");
+    if (useRecommendedPriceBtn) {
+      useRecommendedPriceBtn.addEventListener("click", () => applySuggestedPrice("recommended"));
+    }
 
     const exportBtn = $("exportDataBtn");
     if (exportBtn) exportBtn.addEventListener("click", () => Storage.downloadExport());
