@@ -382,8 +382,42 @@
         const current = Calc.toNumber(getValue("currentSellingPriceInput"));
         setValue("currentSellingPriceInput", Calc.round2(current + addValue));
         runCalculation();
+        updateQuickProfitHint();
       });
     });
+  }
+
+  function applyCompetitorSmartPrice(strategy = "match") {
+    const competitorTotal = Calc.toNumber(getValue("competitorTotalPriceInput"));
+    const competitorQty = Calc.toNumber(getValue("competitorQtyInput"));
+    const yourBundleQty = Calc.toNumber(getValue("bundleQtyInput")) || 1;
+
+    if (!competitorTotal || !competitorQty) {
+      showToast(
+        currentLang === "ru"
+          ? "Competitor total price aur qty dono zaroor dalo"
+          : "Please provide competitor total price and quantity",
+        "warning"
+      );
+      return;
+    }
+
+    const competitorPerPiece = competitorTotal / competitorQty;
+    const targetPerPiece = strategy === "undercut"
+      ? Math.max(0, competitorPerPiece - 1)
+      : competitorPerPiece;
+    const targetTotalPrice = Calc.round2(targetPerPiece * yourBundleQty);
+
+    setValue("currentSellingPriceInput", targetTotalPrice.toFixed(2));
+    runCalculation();
+    updateQuickProfitHint();
+
+    showToast(
+      strategy === "undercut"
+        ? (currentLang === "ru" ? "Price competitor se PKR 1 kam set ho gaya" : "Price set to PKR 1 below competitor")
+        : (currentLang === "ru" ? "Price competitor ke barabar set ho gaya" : "Price matched to competitor"),
+      "success"
+    );
   }
 
   // ---------- CHARTS (simple live) ----------
@@ -836,6 +870,16 @@
     });
 
     bindQuickAddButtons();
+
+    const matchCompetitorBtn = $("matchCompetitorBtn");
+    if (matchCompetitorBtn) {
+      matchCompetitorBtn.addEventListener("click", () => applyCompetitorSmartPrice("match"));
+    }
+
+    const undercutCompetitorBtn = $("undercutCompetitorBtn");
+    if (undercutCompetitorBtn) {
+      undercutCompetitorBtn.addEventListener("click", () => applyCompetitorSmartPrice("undercut"));
+    }
 
     // Keyboard shortcuts
     document.addEventListener("keydown", (e) => {

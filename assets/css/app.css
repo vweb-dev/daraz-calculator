@@ -509,6 +509,10 @@ textarea:focus {
     margin-top: 14px;
 }
 
+.quick-step-row--smart {
+    margin-top: 10px;
+}
+
 .chip-btn {
     min-height: 42px;
     min-width: 74px;
@@ -518,6 +522,12 @@ textarea:focus {
     color: #dce7ff;
     background: linear-gradient(180deg, rgba(122, 162, 255, .20), rgba(122, 162, 255, .08));
     font-weight: 800;
+}
+
+.chip-btn--soft {
+    border-color: var(--line-strong);
+    background: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .06));
+    color: var(--text);
 }
 
 .assumptions-link {

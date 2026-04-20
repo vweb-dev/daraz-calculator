@@ -105,6 +105,8 @@ window.APP_CONFIG = {
 
       competitorQty: "Competitor Quantity",
       competitorQtyPlaceholder: "e.g. 6",
+      matchCompetitorPrice: "Match Competitor",
+      undercutByOne: "Undercut by PKR 1",
 
       showAssumptions: "Show all fee & cost assumptions",
       commissionRate: "Commission Rate",
@@ -192,6 +194,8 @@ window.APP_CONFIG = {
 
       competitorQty: "Competitor Quantity",
       competitorQtyPlaceholder: "misal: 6",
+      matchCompetitorPrice: "Competitor Match Karo",
+      undercutByOne: "PKR 1 Kam Rakho",
 
       showAssumptions: "Saari fee aur cost assumptions dekho",
       commissionRate: "Commission Rate",
