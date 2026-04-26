@@ -5,6 +5,7 @@
 
   let currentLang = Storage.getLanguage() || defaults.language;
   let settings = Storage.getSettings();
+  let latestResult = null;
 
   // ---------- DOM HELPERS ----------
 
@@ -381,8 +382,42 @@
         const current = Calc.toNumber(getValue("currentSellingPriceInput"));
         setValue("currentSellingPriceInput", Calc.round2(current + addValue));
         runCalculation();
+        updateQuickProfitHint();
       });
     });
+  }
+
+  function applyCompetitorSmartPrice(strategy = "match") {
+    const competitorTotal = Calc.toNumber(getValue("competitorTotalPriceInput"));
+    const competitorQty = Calc.toNumber(getValue("competitorQtyInput"));
+    const yourBundleQty = Calc.toNumber(getValue("bundleQtyInput")) || 1;
+
+    if (!competitorTotal || !competitorQty) {
+      showToast(
+        currentLang === "ru"
+          ? "Competitor total price aur qty dono zaroor dalo"
+          : "Please provide competitor total price and quantity",
+        "warning"
+      );
+      return;
+    }
+
+    const competitorPerPiece = competitorTotal / competitorQty;
+    const targetPerPiece = strategy === "undercut"
+      ? Math.max(0, competitorPerPiece - 1)
+      : competitorPerPiece;
+    const targetTotalPrice = Calc.round2(targetPerPiece * yourBundleQty);
+
+    setValue("currentSellingPriceInput", targetTotalPrice.toFixed(2));
+    runCalculation();
+    updateQuickProfitHint();
+
+    showToast(
+      strategy === "undercut"
+        ? (currentLang === "ru" ? "Price competitor se PKR 1 kam set ho gaya" : "Price set to PKR 1 below competitor")
+        : (currentLang === "ru" ? "Price competitor ke barabar set ho gaya" : "Price matched to competitor"),
+      "success"
+    );
   }
 
   // ---------- CHARTS (simple live) ----------
@@ -567,8 +602,30 @@
     renderOverview(result);
     renderCharts();
     renderReportPreview();
+    latestResult = result;
 
     return result;
+  }
+
+  function applySuggestedPrice(type) {
+    const result = latestResult || runCalculation();
+    const nextPrice = type === "minimum" ? result.minimumPrice : result.recommendedPrice;
+
+    if (!nextPrice || nextPrice <= 0) {
+      showToast(currentLang === "ru" ? "Price suggestion available nahi" : "No valid price suggestion available", "warning");
+      return;
+    }
+
+    setValue("currentSellingPriceInput", nextPrice.toFixed(2));
+    runCalculation();
+    updateQuickProfitHint();
+
+    showToast(
+      type === "minimum"
+        ? (currentLang === "ru" ? "Minimum price apply ho gaya" : "Minimum price applied")
+        : (currentLang === "ru" ? "Recommended price apply ho gaya" : "Recommended price applied"),
+      "success"
+    );
   }
 
   // ---------- PRINT ----------
@@ -726,6 +783,16 @@
 
     const clearBtn = $("clearFormBtn");
     if (clearBtn) clearBtn.addEventListener("click", clearForm);
+    
+    const useMinimumPriceBtn = $("useMinimumPriceBtn");
+    if (useMinimumPriceBtn) {
+      useMinimumPriceBtn.addEventListener("click", () => applySuggestedPrice("minimum"));
+    }
+
+    const useRecommendedPriceBtn = $("useRecommendedPriceBtn");
+    if (useRecommendedPriceBtn) {
+      useRecommendedPriceBtn.addEventListener("click", () => applySuggestedPrice("recommended"));
+    }
 
     const exportBtn = $("exportDataBtn");
     if (exportBtn) exportBtn.addEventListener("click", () => Storage.downloadExport());
@@ -803,6 +870,16 @@
     });
 
     bindQuickAddButtons();
+
+    const matchCompetitorBtn = $("matchCompetitorBtn");
+    if (matchCompetitorBtn) {
+      matchCompetitorBtn.addEventListener("click", () => applyCompetitorSmartPrice("match"));
+    }
+
+    const undercutCompetitorBtn = $("undercutCompetitorBtn");
+    if (undercutCompetitorBtn) {
+      undercutCompetitorBtn.addEventListener("click", () => applyCompetitorSmartPrice("undercut"));
+    }
 
     // Keyboard shortcuts
     document.addEventListener("keydown", (e) => {
