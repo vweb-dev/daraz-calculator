@@ -1,20 +1,43 @@
 window.APP_CONFIG = {
+  version: "2.0.0",
+  buildDate: "2025-01-01",
+  
   storageKeys: {
-    settings: "daraz_calc_settings_v1",
-    products: "daraz_calc_products_v1",
-    language: "daraz_calc_lang_v1",
-    adminAuth: "daraz_calc_admin_auth_v1",
-    competitors: "daraz_calc_competitors_v1",
-    draft: "daraz_calc_draft_v1",
-    autoSave: "daraz_calc_autosave_v1"
+    settings: "daraz_calc_settings_v2",
+    products: "daraz_calc_products_v2",
+    language: "daraz_calc_lang_v2",
+    adminAuth: "daraz_calc_admin_auth_v2",
+    competitors: "daraz_calc_competitors_v2",
+    draft: "daraz_calc_draft_v2",
+    autoSave: "daraz_calc_autosave_v2",
+    theme: "daraz_calc_theme_v2",
+    analytics: "daraz_calc_analytics_v2"
   },
-
+  
   admin: {
     password: "vweb123!"
   },
-
+  
+  // Performance & UX settings
+  performance: {
+    debounceDelay: 300,
+    throttleDelay: 100,
+    maxProductsInMemory: 100,
+    lazyLoadThreshold: 200,
+    animationDuration: 250
+  },
+  
+  // Input validation limits
+  limits: {
+    maxPrice: 1000000,
+    maxQuantity: 10000,
+    maxSkuLength: 120,
+    maxCompetitors: 50
+  },
+  
   defaults: {
     language: "en",
+    theme: "dark",
 
     quickForm: {
       sku: "",
