@@ -243,6 +243,12 @@ a {
     opacity: 0.9;
 }
 
+.hero-status {
+    background: linear-gradient(135deg, #0b1222 0%, #15203a 100%);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: white;
+}
+
 .welcome-banner__text {
     flex: 1;
 }
