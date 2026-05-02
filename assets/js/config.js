@@ -8,7 +8,8 @@ window.APP_CONFIG = {
     adminAuth: "daraz_calc_admin_auth_v1",
     competitors: "daraz_calc_competitors_v1",
     draft: "daraz_calc_draft_v1",
-    autoSave: "daraz_calc_autosave_v1"
+    autoSave: "daraz_calc_autosave_v1",
+    welcomeSeen: "daraz_calc_welcome_seen_v1"
   },
 
   limits: {

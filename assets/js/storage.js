@@ -162,6 +162,16 @@
     setItem(storageKeys.autoSave, enabled);
   }
 
+  // ---------- WELCOME BANNER ----------
+
+  function getWelcomeSeen() {
+    return getItem(storageKeys.welcomeSeen, false);
+  }
+
+  function setWelcomeSeen(seen) {
+    setItem(storageKeys.welcomeSeen, seen);
+  }
+
   // ---------- EXPORT / IMPORT ----------
 
   function exportData() {
@@ -265,6 +275,10 @@
     // auto-save preference
     getAutoSave,
     setAutoSave,
+
+    // welcome banner
+    getWelcomeSeen,
+    setWelcomeSeen,
 
     // utils
     generateId,

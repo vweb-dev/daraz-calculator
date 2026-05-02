@@ -550,6 +550,13 @@
   // ---------- MAIN CALCULATION ----------
 
   function runCalculation() {
+    // Show loading state
+    const calcBtn = $("calculateNowBtn");
+    if (calcBtn) {
+      calcBtn.classList.add("btn--loading");
+      calcBtn.disabled = true;
+    }
+
     settings = Storage.getSettings();
 
     const data = getFormData();
@@ -568,6 +575,17 @@
     renderOverview(result);
     renderCharts();
     renderReportPreview();
+
+    // Update bundle calculations
+    calculateBundleScenarios();
+
+    // Hide loading state
+    setTimeout(() => {
+      if (calcBtn) {
+        calcBtn.classList.remove("btn--loading");
+        calcBtn.disabled = false;
+      }
+    }, 300);
 
     return result;
   }
@@ -678,6 +696,140 @@
     hintEl.className = `field-hint ${quickProfit >= 0 ? "profit-positive" : "profit-negative"}`;
   }
 
+  // ---------- BUNDLE CALCULATOR ----------
+
+  function calculateBundleScenarios() {
+    const targetPrice = parseFloat(getValue("bundleTargetPriceInput")) || 0;
+    const buyingPrice = parseFloat(getValue("buyingPriceInput")) || 0;
+    const packagingCost = parseFloat(getValue("packagingCostInput")) || 0;
+
+    if (!targetPrice || !buyingPrice) {
+      // Reset bundle results
+      [2, 5, 10].forEach(qty => {
+        setText(`bundle${qty}Price`, "PKR 0.00");
+        setText(`bundle${qty}Profit`, "PKR 0.00");
+        setText(`bundle${qty}PerPiece`, "PKR 0.00/piece");
+      });
+      setText("bundleInsightText", currentLang === "ru"
+        ? "Target bundle price enter karein aur dekhein kaise bundling se zyada profit ho sakta hai."
+        : "Enter a target bundle price to see how bundling can increase your profits.");
+      return;
+    }
+
+    const scenarios = [
+      { qty: 2, element: "bundle2" },
+      { qty: 5, element: "bundle5" },
+      { qty: 10, element: "bundle10" }
+    ];
+
+    let bestProfit = 0;
+    let bestQty = 2;
+
+    scenarios.forEach(({ qty, element }) => {
+      const totalBuying = buyingPrice * qty;
+      const totalCost = totalBuying + packagingCost;
+
+      // Calculate profit per bundle
+      const profit = targetPrice - totalCost;
+
+      // Calculate per piece price
+      const perPiece = targetPrice / qty;
+
+      setText(`${element}Price`, Calc.formatCurrency(targetPrice));
+      setText(`${element}Profit`, Calc.formatCurrency(profit));
+      setText(`${element}PerPiece`, `${Calc.formatCurrency(perPiece)}/piece`);
+
+      if (profit > bestProfit) {
+        bestProfit = profit;
+        bestQty = qty;
+      }
+    });
+
+    // Update insight
+    const insightText = currentLang === "ru"
+      ? `Best option: ${bestQty}x bundle - ${Calc.formatCurrency(bestProfit)} profit!`
+      : `Best option: ${bestQty}x bundle - ${Calc.formatCurrency(bestProfit)} profit!`;
+    setText("bundleInsightText", insightText);
+  }
+
+  function copyBundlePriceToClipboard() {
+    const price = getValue("bundleTargetPriceInput");
+    if (!price) {
+      AppNotify.warning(currentLang === "ru" ? "Pehle price enter karein" : "Enter a price first");
+      return;
+    }
+
+    navigator.clipboard.writeText(price).then(() => {
+      AppNotify.success(currentLang === "ru" ? "Price copy ho gaya!" : "Price copied!");
+    }).catch(() => {
+      AppNotify.error(currentLang === "ru" ? "Copy nahi ho saka" : "Copy failed");
+    });
+  }
+
+  function toggleBundleView() {
+    const results = $("bundleResults");
+    if (!results) return;
+
+    const isGrid = results.style.display !== "none";
+    results.style.display = isGrid ? "none" : "grid";
+
+    const btn = $("toggleBundleViewBtn");
+    if (btn) {
+      btn.innerHTML = isGrid ? "📋" : "📊";
+      btn.title = isGrid ? "Show list view" : "Show grid view";
+    }
+  }
+
+  function selectBundleScenario(qty) {
+    const targetPrice = parseFloat(getValue("bundleTargetPriceInput")) || 0;
+    if (!targetPrice) return;
+
+    // Update current selling price with bundle price
+    setValue("currentSellingPriceInput", targetPrice.toString());
+
+    // Update bundle quantity
+    setValue("bundleQtyInput", qty);
+
+    // Run calculation
+    runCalculation();
+
+    // Show notification
+    AppNotify.success(currentLang === "ru"
+      ? `${qty}x bundle select ho gaya!`
+      : `${qty}x bundle selected!`);
+
+    // Scroll to results
+    const heroSection = $("heroStatusCard");
+    if (heroSection) {
+      heroSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function showWelcomeBanner() {
+    const banner = $("welcomeBanner");
+    const hasSeenWelcome = Storage.getWelcomeSeen();
+
+    if (!banner || hasSeenWelcome) return;
+
+    banner.classList.remove("welcome-banner--hidden");
+
+    const closeBtn = $("welcomeCloseBtn");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        banner.classList.add("welcome-banner--hidden");
+        Storage.setWelcomeSeen(true);
+      });
+    }
+
+    // Auto-hide after 10 seconds
+    setTimeout(() => {
+      if (!banner.classList.contains("welcome-banner--hidden")) {
+        banner.classList.add("welcome-banner--hidden");
+        Storage.setWelcomeSeen(true);
+      }
+    }, 10000);
+  }
+
   // ---------- INIT ----------
 
   function bindEvents() {
@@ -784,6 +936,74 @@
 
     bindQuickAddButtons();
 
+    // Bundle calculator events
+    const bundleTargetPriceInput = $("bundleTargetPriceInput");
+    if (bundleTargetPriceInput) {
+      bundleTargetPriceInput.addEventListener("input", calculateBundleScenarios);
+      bundleTargetPriceInput.addEventListener("change", calculateBundleScenarios);
+    }
+
+    const copyBundlePriceBtn = $("copyBundlePriceBtn");
+    if (copyBundlePriceBtn) copyBundlePriceBtn.addEventListener("click", copyBundlePriceToClipboard);
+
+    const toggleBundleViewBtn = $("toggleBundleViewBtn");
+    if (toggleBundleViewBtn) toggleBundleViewBtn.addEventListener("click", toggleBundleView);
+
+    // Bundle quick action buttons
+    qsa("[data-bundle-price]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const price = e.target.dataset.bundlePrice;
+        setValue("bundleTargetPriceInput", price);
+        calculateBundleScenarios();
+      });
+    });
+
+    // Bundle scenario click handlers
+    qsa(".bundle-scenario").forEach(scenario => {
+      scenario.addEventListener("click", (e) => {
+        const qty = e.currentTarget.dataset.qty;
+        selectBundleScenario(qty);
+      });
+    });
+
+    // FAB event listeners
+    const fabBtn = $("fabBtn");
+    const fabContainer = $("fabContainer");
+    const fabMenu = $("fabMenu");
+
+    if (fabBtn && fabContainer) {
+      fabBtn.addEventListener("click", () => {
+        fabContainer.classList.toggle("fab-container--open");
+      });
+
+      // Close FAB when clicking outside
+      document.addEventListener("click", (e) => {
+        if (!fabContainer.contains(e.target)) {
+          fabContainer.classList.remove("fab-container--open");
+        }
+      });
+    }
+
+    // FAB menu items
+    const fabCalculate = $("fabCalculate");
+    if (fabCalculate) fabCalculate.addEventListener("click", () => {
+      runCalculation();
+      fabContainer.classList.remove("fab-container--open");
+      AppNotify.success(currentLang === "ru" ? "Calculation complete!" : "Calculation complete!");
+    });
+
+    const fabSave = $("fabSave");
+    if (fabSave) fabSave.addEventListener("click", () => {
+      saveCurrentProduct();
+      fabContainer.classList.remove("fab-container--open");
+    });
+
+    const fabClear = $("fabClear");
+    if (fabClear) fabClear.addEventListener("click", () => {
+      clearForm();
+      fabContainer.classList.remove("fab-container--open");
+    });
+
     // Keyboard shortcuts
     document.addEventListener("keydown", (e) => {
       // Ctrl+S: Save product or toggle auto-save
@@ -809,14 +1029,17 @@
     renderRecentProducts();
     renderCharts();
     renderReportPreview();
-    
+
     // Load auto-save preference
     autoSaveEnabled = Storage.getAutoSave() ?? true;
     updateAutoSaveButton();
-    
+
     // Load draft if exists
     loadDraft();
-    
+
+    // Show welcome banner for new users
+    showWelcomeBanner();
+
     runCalculation();
     bindEvents();
   }

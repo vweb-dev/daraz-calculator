@@ -31,6 +31,22 @@
         </header>
 
         <main class="main-content">
+            <!-- WELCOME BANNER -->
+            <section class="welcome-banner glass" id="welcomeBanner">
+                <div class="welcome-banner__content">
+                    <div class="welcome-banner__icon">🚀</div>
+                    <div class="welcome-banner__text">
+                        <h3 data-i18n="welcomeTitle">Welcome to Daraz Calculator Pro!</h3>
+                        <p data-i18n="welcomeMessage">
+                            Enter your buying price below and get instant pricing recommendations, bundle suggestions, and profit analysis.
+                        </p>
+                    </div>
+                    <button class="welcome-banner__close" id="welcomeCloseBtn" aria-label="Close welcome message">
+                        ✕
+                    </button>
+                </div>
+            </section>
+
             <!-- HERO RESULT -->
             <section class="hero-status glass" id="heroStatusCard">
                 <div class="hero-status__top">
@@ -185,6 +201,90 @@
                                 <span data-i18n="defaultDiscount">Default Discount</span>
                                 <strong id="assumptionDiscount">10%</strong>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BUNDLE CALCULATOR -->
+            <section class="panel glass bundle-panel" id="bundleSection">
+                <div class="panel__header">
+                    <div>
+                        <h2 class="panel__title" data-i18n="bundleCalculatorTitle">Bundle Calculator</h2>
+                        <p class="panel__subtitle" data-i18n="bundleCalculatorSubtitle">
+                            Same price, more quantity - discover how bundling increases your profits while keeping customers happy.
+                        </p>
+                    </div>
+
+                    <div class="header-actions">
+                        <button class="icon-btn" type="button" id="toggleBundleViewBtn" aria-label="Toggle bundle view" title="Switch view mode">
+                            <span>📊</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel__body">
+                    <div class="bundle-controls">
+                        <div class="bundle-input-group">
+                            <label for="bundleTargetPriceInput" data-i18n="bundleTargetPrice">Target Bundle Price</label>
+                            <div class="input-with-actions">
+                                <input id="bundleTargetPriceInput" type="number" inputmode="decimal" placeholder="e.g. 500" />
+                                <button class="copy-btn" type="button" id="copyBundlePriceBtn" title="Copy bundle price" aria-label="Copy bundle price">
+                                    📋
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bundle-quick-actions">
+                            <button class="chip-btn" type="button" data-bundle-price="100">PKR 100</button>
+                            <button class="chip-btn" type="button" data-bundle-price="250">PKR 250</button>
+                            <button class="chip-btn" type="button" data-bundle-price="500">PKR 500</button>
+                            <button class="chip-btn" type="button" data-bundle-price="1000">PKR 1000</button>
+                        </div>
+                    </div>
+
+                    <div class="bundle-results" id="bundleResults">
+                        <div class="bundle-scenario" data-qty="2">
+                            <div class="bundle-scenario__header">
+                                <span class="bundle-scenario__qty">2x Bundle</span>
+                                <span class="bundle-scenario__profit" id="bundle2Profit">PKR 0.00</span>
+                            </div>
+                            <div class="bundle-scenario__details">
+                                <span class="bundle-scenario__price" id="bundle2Price">PKR 0.00</span>
+                                <span class="bundle-scenario__per-piece" id="bundle2PerPiece">PKR 0.00/piece</span>
+                            </div>
+                        </div>
+
+                        <div class="bundle-scenario" data-qty="5">
+                            <div class="bundle-scenario__header">
+                                <span class="bundle-scenario__qty">5x Bundle</span>
+                                <span class="bundle-scenario__profit" id="bundle5Profit">PKR 0.00</span>
+                            </div>
+                            <div class="bundle-scenario__details">
+                                <span class="bundle-scenario__price" id="bundle5Price">PKR 0.00</span>
+                                <span class="bundle-scenario__per-piece" id="bundle5PerPiece">PKR 0.00/piece</span>
+                            </div>
+                        </div>
+
+                        <div class="bundle-scenario" data-qty="10">
+                            <div class="bundle-scenario__header">
+                                <span class="bundle-scenario__qty">10x Bundle</span>
+                                <span class="bundle-scenario__profit" id="bundle10Profit">PKR 0.00</span>
+                            </div>
+                            <div class="bundle-scenario__details">
+                                <span class="bundle-scenario__price" id="bundle10Price">PKR 0.00</span>
+                                <span class="bundle-scenario__per-piece" id="bundle10PerPiece">PKR 0.00/piece</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bundle-insight" id="bundleInsight">
+                        <div class="bundle-insight__icon">💡</div>
+                        <div class="bundle-insight__content">
+                            <h4 data-i18n="bundleInsightTitle">Bundle Magic</h4>
+                            <p data-i18n="bundleInsightText" id="bundleInsightText">
+                                Enter a target bundle price above to see how bundling can increase your profits at the same price point.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -454,6 +554,28 @@
                 <span class="bottom-nav__label" data-i18n="navBulk">Bulk</span>
             </a>
         </nav>
+
+        <!-- FLOATING ACTION BUTTON -->
+        <div class="fab-container" id="fabContainer">
+            <button class="fab" id="fabBtn" aria-label="Quick actions">
+                <span class="fab__icon">⚡</span>
+            </button>
+
+            <div class="fab-menu" id="fabMenu">
+                <button class="fab-item" id="fabCalculate" aria-label="Calculate now">
+                    <span class="fab-item__icon">🧮</span>
+                    <span class="fab-item__label" data-i18n="fabCalculate">Calculate</span>
+                </button>
+                <button class="fab-item" id="fabSave" aria-label="Save product">
+                    <span class="fab-item__icon">💾</span>
+                    <span class="fab-item__label" data-i18n="fabSave">Save</span>
+                </button>
+                <button class="fab-item" id="fabClear" aria-label="Clear form">
+                    <span class="fab-item__icon">🗑️</span>
+                    <span class="fab-item__label" data-i18n="fabClear">Clear</span>
+                </button>
+            </div>
+        </div>
 
         <footer class="app-footer">
             <span data-i18n="poweredBy">Powered by</span> <strong>vweb.dev</strong>
