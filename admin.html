@@ -19,6 +19,9 @@
       </div>
 
       <div class="topbar__right">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle theme" title="Switch theme">
+          <span>🌙</span>
+        </button>
         <button class="lang-toggle" id="langToggle" type="button" aria-label="Toggle language">
           <span class="lang-toggle__item lang-toggle__item--active">EN</span>
           <span class="lang-toggle__divider"></span>
@@ -74,6 +77,28 @@
         </div>
 
         <div class="panel__body">
+          <div class="admin-analytics-grid">
+            <article class="metric-card glass-soft">
+              <span class="metric-card__label">Total Products</span>
+              <strong class="metric-card__value" id="adminTotalProducts">0</strong>
+            </article>
+            <article class="metric-card glass-soft">
+              <span class="metric-card__label">Safe / Healthy</span>
+              <strong class="metric-card__value" id="adminSafeProducts">0</strong>
+            </article>
+            <article class="metric-card glass-soft">
+              <span class="metric-card__label">Risky / Loss</span>
+              <strong class="metric-card__value" id="adminRiskyProducts">0</strong>
+            </article>
+            <article class="metric-card glass-soft">
+              <span class="metric-card__label">Avg Margin</span>
+              <strong class="metric-card__value" id="adminAverageMargin">0%</strong>
+            </article>
+            <article class="metric-card glass-soft">
+              <span class="metric-card__label">Tracked Competitors</span>
+              <strong class="metric-card__value" id="adminTotalCompetitors">0</strong>
+            </article>
+          </div>
           <div class="form-grid form-grid--main">
             <div class="field">
               <label for="commissionRateInput">Commission Rate (%)</label>
@@ -145,6 +170,12 @@
             <button class="btn btn--ghost" id="resetAdminSettingsBtn" type="button">Reset Defaults</button>
             <button class="btn btn--ghost" id="adminLogoutBtn" type="button">Lock Admin</button>
             <a href="index.html" class="btn btn--success">Open Calculator</a>
+          </div>
+
+          <div class="action-row" style="margin-top:16px; gap:10px; flex-wrap: wrap;">
+            <button class="btn btn--ghost" id="adminExportBtn" type="button">Export Backup</button>
+            <label class="btn btn--ghost" for="adminImportFileInput" title="Import full app backup">Import Backup</label>
+            <input type="file" id="adminImportFileInput" accept=".json" style="display:none;" />
           </div>
         </div>
       </section>

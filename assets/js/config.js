@@ -5,6 +5,7 @@ window.APP_CONFIG = {
     settings: "daraz_calc_settings_v1",
     products: "daraz_calc_products_v1",
     language: "daraz_calc_lang_v1",
+    theme: "daraz_calc_theme_v1",
     adminAuth: "daraz_calc_admin_auth_v1",
     competitors: "daraz_calc_competitors_v1",
     draft: "daraz_calc_draft_v1",
@@ -54,7 +55,8 @@ window.APP_CONFIG = {
       defaultDiscountRate: 10.00,
       defaultTargetMarginRate: 10.00,
       bundleQuantities: [1, 2, 3, 5, 10, 12]
-    }
+    },
+    theme: "light"
   },
 
   recommendationLabels: {

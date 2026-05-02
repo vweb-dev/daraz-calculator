@@ -75,6 +75,23 @@
     }
   }
 
+  function applyTheme() {
+    const theme = Storage.getTheme() || window.APP_CONFIG.defaults.theme || "light";
+    document.body.classList.toggle("theme-dark", theme === "dark");
+    const themeBtn = $("themeToggle");
+    if (themeBtn) {
+      themeBtn.innerHTML = theme === "dark" ? "☀️" : "🌙";
+      themeBtn.title = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+    }
+  }
+
+  function toggleTheme() {
+    const theme = Storage.getTheme() || window.APP_CONFIG.defaults.theme || "light";
+    const next = theme === "dark" ? "light" : "dark";
+    Storage.setTheme(next);
+    applyTheme();
+  }
+
   function toggleLanguage() {
     currentLang = currentLang === "en" ? "ru" : "en";
     Storage.setLanguage(currentLang);
@@ -148,6 +165,7 @@
   function getFormData() {
     return {
       sku: getValue("skuInput").trim(),
+      tag: getValue("productTagInput").trim(),
       buyingPrice: getValue("buyingPriceInput"),
       packagingCost: getValue("packagingCostInput"),
       currentSellingPrice: getValue("currentSellingPriceInput"),
@@ -159,6 +177,7 @@
 
   function setFormData(data = {}) {
     setValue("skuInput", data.sku ?? "");
+    setValue("productTagInput", data.tag ?? "");
     setValue("buyingPriceInput", data.buyingPrice ?? "");
     setValue("packagingCostInput", data.packagingCost ?? 0);
     setValue("currentSellingPriceInput", data.currentSellingPrice ?? "");
@@ -833,6 +852,9 @@
   // ---------- INIT ----------
 
   function bindEvents() {
+    const themeToggleBtn = $("themeToggle");
+    if (themeToggleBtn) themeToggleBtn.addEventListener("click", toggleTheme);
+
     const langToggle = $("langToggle");
     if (langToggle) langToggle.addEventListener("click", toggleLanguage);
 
@@ -996,6 +1018,7 @@
     // Show welcome banner for new users
     showWelcomeBanner();
 
+    applyTheme();
     runCalculation();
     bindEvents();
   }

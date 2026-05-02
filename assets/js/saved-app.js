@@ -62,11 +62,28 @@
     }
   }
 
+  function applyTheme() {
+    const theme = Storage.getTheme() || window.APP_CONFIG.defaults.theme || "light";
+    document.body.classList.toggle("theme-dark", theme === "dark");
+    const themeBtn = $("themeToggle");
+    if (themeBtn) {
+      themeBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+      themeBtn.title = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+    }
+  }
+
   function toggleLanguage() {
     currentLang = currentLang === "en" ? "ru" : "en";
     Storage.setLanguage(currentLang);
     applyTranslations();
     renderAll();
+  }
+
+  function toggleTheme() {
+    const currentTheme = Storage.getTheme() || window.APP_CONFIG.defaults.theme || "light";
+    const nextTheme = currentTheme === "dark" ? "light" : "dark";
+    Storage.setTheme(nextTheme);
+    applyTheme();
   }
 
   // ---------- FILTERING ----------
@@ -161,6 +178,7 @@
           <article class="recent-card glass-soft">
             <div class="recent-card__top">
               <strong class="recent-card__name">${escapeHtml(product.sku || "Unnamed Product")}</strong>
+              ${product.tag ? `<span class="chip">${escapeHtml(product.tag)}</span>` : ""}
               <span class="badge ${health.className}">${escapeHtml(statusLabel)}</span>
             </div>
 
@@ -238,6 +256,7 @@
       packagingCost: product.packagingCost || 0,
       currentSellingPrice: product.currentSellingPrice || "",
       bundleQty: product.bundleQty || 12,
+      tag: product.tag || "",
       competitorTotalPrice: product.competitorTotalPrice || "",
       competitorQty: product.competitorQty || ""
     });
@@ -272,6 +291,7 @@
     setValue("editPackagingCostInput", product.packagingCost || 0);
     setValue("editCurrentSellingPriceInput", product.currentSellingPrice || "");
     setValue("editBundleQtyInput", product.bundleQty || 12);
+    setValue("editProductTagInput", product.tag || "");
     setValue("editCompetitorTotalPriceInput", product.competitorTotalPrice || "");
     setValue("editCompetitorQtyInput", product.competitorQty || "");
 
@@ -304,6 +324,7 @@
       packagingCost: Calc.toNumber(getValue("editPackagingCostInput")),
       currentSellingPrice: Calc.toNumber(getValue("editCurrentSellingPriceInput")),
       bundleQty: Calc.toNumber(getValue("editBundleQtyInput")),
+      tag: getValue("editProductTagInput").trim(),
       competitorTotalPrice: Calc.toNumber(getValue("editCompetitorTotalPriceInput")),
       competitorQty: Calc.toNumber(getValue("editCompetitorQtyInput"))
     };
@@ -541,6 +562,9 @@
     const langToggle = $("langToggle");
     if (langToggle) langToggle.addEventListener("click", toggleLanguage);
 
+    const themeToggleBtn = $("themeToggle");
+    if (themeToggleBtn) themeToggleBtn.addEventListener("click", toggleTheme);
+
     const search = $("savedSearchInput");
     if (search) search.addEventListener("input", renderSavedProducts);
 
@@ -590,6 +614,7 @@
 
   function init() {
     applyTranslations();
+    applyTheme();
     bindEvents();
     renderAll();
   }

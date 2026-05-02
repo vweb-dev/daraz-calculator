@@ -162,6 +162,16 @@
     setItem(storageKeys.autoSave, enabled);
   }
 
+  // ---------- THEME ----------
+
+  function getTheme() {
+    return getItem(storageKeys.theme, defaults.theme || "light");
+  }
+
+  function setTheme(theme) {
+    setItem(storageKeys.theme, theme);
+  }
+
   // ---------- WELCOME BANNER ----------
 
   function getWelcomeSeen() {

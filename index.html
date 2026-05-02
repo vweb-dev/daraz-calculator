@@ -22,6 +22,9 @@
             </div>
 
             <div class="topbar__right">
+                <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle theme" title="Switch theme">
+                    <span>🌙</span>
+                </button>
                 <button class="lang-toggle" id="langToggle" type="button" aria-label="Toggle language">
                     <span class="lang-toggle__item lang-toggle__item--active">EN</span>
                     <span class="lang-toggle__divider"></span>
@@ -121,6 +124,11 @@
                         </div>
 
                         <div class="field">
+                            <label for="productTagInput">Product Tag</label>
+                            <input id="productTagInput" type="text" placeholder="e.g. Earrings, Bundle, Premium" />
+                        </div>
+
+                        <div class="field">
                             <label for="buyingPriceInput" data-i18n="buyingPrice">Buying Price *</label>
                             <input id="buyingPriceInput" type="number" inputmode="decimal" placeholder="e.g. 10"
                                 data-i18n-placeholder="buyingPricePlaceholder" />
@@ -195,6 +203,31 @@
                                 <strong id="assumptionDiscount">10%</strong>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel glass advisor-panel" id="pricingAdvisorSection">
+                <div class="panel__header">
+                    <div>
+                        <h2 class="panel__title">Pricing Advisor</h2>
+                        <p class="panel__subtitle">Quick guidance for your current listing and bundle strategy.</p>
+                    </div>
+                </div>
+                <div class="panel__body">
+                    <div class="advisor-grid">
+                        <article class="metric-card glass-soft">
+                            <span class="metric-card__label">Quick Advice</span>
+                            <strong class="metric-card__value" id="advisorTip">Set buying price to get instant recommendations.</strong>
+                        </article>
+                        <article class="metric-card glass-soft">
+                            <span class="metric-card__label">Best Bundle</span>
+                            <strong class="metric-card__value" id="advisorBundleHint">Use bundle suggestion for better margins.</strong>
+                        </article>
+                        <article class="metric-card glass-soft">
+                            <span class="metric-card__label">Competitor Signal</span>
+                            <strong class="metric-card__value" id="advisorMarketPosition">Price your product relative to competition.</strong>
+                        </article>
                     </div>
                 </div>
             </section>
