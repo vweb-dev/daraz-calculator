@@ -66,11 +66,11 @@
   function unlockAdmin() {
     const pass = getValue("adminPasswordInput");
 
-    if (pass === admin.password) {
+    if (pass === admin.defaultPassword) {
       Storage.setItem(storageKeys.adminAuth, true);
       renderAuthState();
     } else {
-      alert(currentLang === "ru" ? "Ghalat password." : "Incorrect password.");
+      AppNotify.error(currentLang === "ru" ? "Ghalat password." : "Incorrect password.");
     }
   }
 
@@ -145,7 +145,7 @@
   function saveSettings() {
     const settings = readSettingsForm();
     Storage.saveSettings(settings);
-    alert(currentLang === "ru" ? "Settings save ho gayi." : "Settings saved.");
+    AppNotify.success(currentLang === "ru" ? "Settings save ho gayi." : "Settings saved.");
   }
 
   function resetSettings() {
@@ -159,7 +159,7 @@
     const restored = Storage.resetSettings();
     fillSettingsForm(restored);
 
-    alert(
+    AppNotify.success(
       currentLang === "ru"
         ? "Default settings restore ho gayi."
         : "Default settings restored."

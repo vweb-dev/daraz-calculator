@@ -291,7 +291,7 @@
     const buyingPriceRaw = getValue("editBuyingPriceInput");
     
     if (!buyingPriceRaw || !Calc.toNumber(buyingPriceRaw)) {
-      alert(currentLang === "ru" 
+      AppNotify.warning(currentLang === "ru" 
         ? "Buying price zaroori hai" 
         : "Buying price is required"
       );
@@ -311,7 +311,7 @@
     // Validate numeric fields are not negative
     if (updated.packagingCost < 0 || updated.currentSellingPrice < 0 || 
         updated.competitorTotalPrice < 0 || updated.competitorQty < 0) {
-      alert(currentLang === "ru"
+      AppNotify.warning(currentLang === "ru"
         ? "Values cannot be negative"
         : "Values cannot be negative"
       );
@@ -381,17 +381,17 @@
     const quantity = Calc.toNumber(getValue("competitorQuantityInput"));
 
     if (!name) {
-      alert(currentLang === "ru" ? "Competitor name zaroori hai" : "Competitor name is required");
+      AppNotify.warning(currentLang === "ru" ? "Competitor name zaroori hai" : "Competitor name is required");
       return;
     }
 
     if (!price || price <= 0) {
-      alert(currentLang === "ru" ? "Price zaroori hai" : "Price is required");
+      AppNotify.warning(currentLang === "ru" ? "Price zaroori hai" : "Price is required");
       return;
     }
 
     if (!quantity || quantity <= 0) {
-      alert(currentLang === "ru" ? "Quantity zaroori hai" : "Quantity is required");
+      AppNotify.warning(currentLang === "ru" ? "Quantity zaroori hai" : "Quantity is required");
       return;
     }
 
@@ -563,14 +563,14 @@
         reader.onload = (event) => {
           const result = Storage.importData(event.target.result);
           if (result.success) {
-            alert(currentLang === "ru" 
+            AppNotify.success(currentLang === "ru" 
               ? `Import successful! ${result.count} products loaded.`
               : `Import successful! ${result.count} products loaded.`
             );
             allProducts = Storage.getProducts();
             renderAll();
           } else {
-            alert(currentLang === "ru"
+            AppNotify.warning(currentLang === "ru"
               ? `Import failed: ${result.error}`
               : `Import failed: ${result.error}`
             );

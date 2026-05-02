@@ -138,9 +138,10 @@
 
   function showValidationErrors(errors) {
     const errorList = errors.map(err => `• ${err}`).join("\n");
-    alert(currentLang === "ru" 
-      ? "Please correct the following errors:\n" + errorList
-      : "Please correct the following errors:\n" + errorList
+    AppNotify.error(
+      currentLang === "ru"
+        ? "Please correct the following errors:\n" + errorList
+        : "Please correct the following errors:\n" + errorList
     );
   }
 
@@ -369,7 +370,7 @@
     Storage.addProduct(product);
     renderRecentProducts();
 
-    alert(currentLang === "ru" ? "Product save ho gaya." : "Product saved.");
+    AppNotify.success(currentLang === "ru" ? "Product save ho gaya." : "Product saved.");
   }
 
   // ---------- QUICK ADD PRICE BUTTONS ----------
@@ -582,13 +583,13 @@
   async function copySkuToClipboard() {
     const sku = getValue("skuInput").trim();
     if (!sku) {
-      showToast(currentLang === "ru" ? "SKU khaali hai" : "SKU is empty", "warning");
+      AppNotify.warning(currentLang === "ru" ? "SKU khaali hai" : "SKU is empty");
       return;
     }
 
     try {
       await navigator.clipboard.writeText(sku);
-      showToast(currentLang === "ru" ? "SKU clipboard mein copy ho gaya" : "SKU copied to clipboard", "success");
+      AppNotify.success(currentLang === "ru" ? "SKU clipboard mein copy ho gaya" : "SKU copied to clipboard");
     } catch (err) {
       // Fallback for older browsers
       const textarea = document.createElement("textarea");
@@ -597,7 +598,7 @@
       textarea.select();
       document.execCommand("copy");
       document.body.removeChild(textarea);
-      showToast(currentLang === "ru" ? "SKU copy ho gaya" : "SKU copied", "success");
+      AppNotify.success(currentLang === "ru" ? "SKU copy ho gaya" : "SKU copied");
     }
   }
 
@@ -612,10 +613,10 @@
     updateAutoSaveButton();
     
     if (autoSaveEnabled) {
-      showToast(currentLang === "ru" ? "Auto-save enabled" : "Auto-save enabled", "success");
+      AppNotify.success(currentLang === "ru" ? "Auto-save enabled" : "Auto-save enabled");
       saveDraft();
     } else {
-      showToast(currentLang === "ru" ? "Auto-save disabled" : "Auto-save disabled", "warning");
+      AppNotify.warning(currentLang === "ru" ? "Auto-save disabled" : "Auto-save disabled");
     }
   }
 
@@ -639,7 +640,7 @@
     
     clearTimeout(autoSaveTimer);
     autoSaveTimer = setTimeout(() => {
-      showToast(currentLang === "ru" ? "Draft saved" : "Draft saved", "success");
+      AppNotify.success(currentLang === "ru" ? "Draft saved" : "Draft saved");
     }, 300);
   }
 
@@ -653,41 +654,6 @@
 
   // ---------- TOAST NOTIFICATIONS ----------
 
-  function showToast(message, type = "info") {
-    // Remove existing toast
-    const existingToast = document.querySelector(".toast-notification");
-    if (existingToast) existingToast.remove();
-
-    const toast = document.createElement("div");
-    toast.className = `toast-notification toast--${type}`;
-    toast.textContent = message;
-    
-    // Styles inline for simplicity
-    Object.assign(toast.style, {
-      position: "fixed",
-      bottom: "100px",
-      left: "50%",
-      transform: "translateX(-50%)",
-      padding: "12px 24px",
-      borderRadius: "14px",
-      background: type === "success" ? "rgba(85, 214, 168, 0.9)" : 
-                  type === "warning" ? "rgba(246, 195, 107, 0.9)" :
-                  "rgba(122, 162, 255, 0.9)",
-      color: "#07111f",
-      fontWeight: "600",
-      fontSize: "0.9rem",
-      zIndex: "10000",
-      boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-      animation: "toastSlideUp 0.3s ease-out"
-    });
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.style.animation = "toastFadeOut 0.3s ease-out";
-      setTimeout(() => toast.remove(), 300);
-    }, 2000);
-  }
 
   // ---------- QUICK PROFIT HINT ----------
 
@@ -736,21 +702,35 @@
         const file = e.target.files[0];
         if (!file) return;
 
+        if (file.size > window.APP_CONFIG.limits.maxImportFileSize) {
+          AppNotify.error(
+            currentLang === "ru"
+              ? "Import file bohat bari hai. Maximum 5MB."
+              : "Upload failed: file must be 5MB or smaller."
+          );
+          e.target.value = "";
+          return;
+        }
+
         const reader = new FileReader();
         reader.onload = (event) => {
           const result = Storage.importData(event.target.result);
           if (result.success) {
-            showToast(currentLang === "ru" 
-              ? `Import successful! ${result.count} products loaded.`
-              : `Import successful! ${result.count} products loaded.`, "success");
+            AppNotify.success(
+              currentLang === "ru"
+                ? `Import successful! ${result.count} products loaded.`
+                : `Import successful! ${result.count} products loaded.`
+            );
             renderRecentProducts();
             renderCharts();
             renderReportPreview();
             runCalculation();
           } else {
-            showToast(currentLang === "ru"
-              ? `Import failed: ${result.error}`
-              : `Import failed: ${result.error}`, "warning");
+            AppNotify.warning(
+              currentLang === "ru"
+                ? `Import failed: ${result.error}`
+                : `Import failed: ${result.error}`
+            );
           }
         };
         reader.readAsText(file);
@@ -793,7 +773,7 @@
         // Debounced auto-save on input changes
         if (autoSaveEnabled) {
           clearTimeout(autoSaveTimer);
-          autoSaveTimer = setTimeout(saveDraft, 1000);
+          autoSaveTimer = setTimeout(saveDraft, window.APP_CONFIG.debounce.autoSaveDelay);
         }
       });
       el.addEventListener("change", () => {

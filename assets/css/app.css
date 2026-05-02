@@ -373,6 +373,82 @@ a {
     border: 1px solid var(--line);
 }
 
+.toast-container {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 11000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(100%, 380px);
+    pointer-events: none;
+}
+
+.toast {
+    pointer-events: auto;
+    border-radius: 18px;
+    padding: 14px 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid transparent;
+    box-shadow: 0 18px 30px rgba(0, 0, 0, .2);
+    animation: toastFadeIn .25s ease;
+}
+
+.toast--success {
+    background: rgba(85, 214, 168, .96);
+    color: #072218;
+}
+
+.toast--error {
+    background: rgba(255, 122, 143, .96);
+    color: #07111f;
+}
+
+.toast--warning {
+    background: rgba(246, 195, 107, .96);
+    color: #07111f;
+}
+
+.toast--info {
+    background: rgba(122, 162, 255, .96);
+    color: #07111f;
+}
+
+.toast__close {
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+@keyframes toastFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes toastFadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
 /* Forms */
 .form-grid {
     display: grid;

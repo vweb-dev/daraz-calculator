@@ -1,4 +1,6 @@
 window.APP_CONFIG = {
+  version: "1.1.0",
+
   storageKeys: {
     settings: "daraz_calc_settings_v1",
     products: "daraz_calc_products_v1",
@@ -9,8 +11,20 @@ window.APP_CONFIG = {
     autoSave: "daraz_calc_autosave_v1"
   },
 
+  limits: {
+    maxProducts: 1000,
+    maxCompetitors: 200,
+    maxSkuLength: 120,
+    maxImportFileSize: 5 * 1024 * 1024
+  },
+
+  debounce: {
+    inputDelay: 300,
+    autoSaveDelay: 1000
+  },
+
   admin: {
-    password: "vweb123!"
+    defaultPassword: "vweb123!"
   },
 
   defaults: {
@@ -71,7 +85,7 @@ window.APP_CONFIG = {
 
   translations: {
     en: {
-      appTitle: "Daraz Calculator Pro",
+      appTitle: "Daraz Listing Calculator Pro",
       appSubtitle: "Enter buying price and instantly understand what to sell, at what price, and whether your current price is causing loss.",
 
       heroStatusLabel: "Live Decision",
@@ -156,7 +170,7 @@ window.APP_CONFIG = {
     },
 
     ru: {
-      appTitle: "Daraz Calculator Pro",
+      appTitle: "Daraz Listing Calculator Pro",
       appSubtitle: "Buying price dalo aur foran samjho kya bechna hai, kis price par bechna hai, aur current price nuksan de raha hai ya nahi.",
 
       heroStatusLabel: "Live Faisla",
