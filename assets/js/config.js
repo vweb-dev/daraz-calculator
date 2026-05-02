@@ -165,6 +165,7 @@ window.APP_CONFIG = {
 
       navCalculator: "Calculator",
       navSaved: "Saved",
+      navAdmin: "Admin",
       navBulk: "Bulk",
 
       poweredBy: "Powered by"
@@ -250,6 +251,7 @@ window.APP_CONFIG = {
 
       navCalculator: "Calculator",
       navSaved: "Saved",
+      navAdmin: "Admin",
       navBulk: "Bulk",
 
       poweredBy: "Powered by"

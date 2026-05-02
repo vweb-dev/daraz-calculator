@@ -845,50 +845,6 @@
     const clearBtn = $("clearFormBtn");
     if (clearBtn) clearBtn.addEventListener("click", clearForm);
 
-    const exportBtn = $("exportDataBtn");
-    if (exportBtn) exportBtn.addEventListener("click", () => Storage.downloadExport());
-
-    const importInput = $("importFileInput");
-    if (importInput) {
-      importInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        if (file.size > window.APP_CONFIG.limits.maxImportFileSize) {
-          AppNotify.error(
-            currentLang === "ru"
-              ? "Import file bohat bari hai. Maximum 5MB."
-              : "Upload failed: file must be 5MB or smaller."
-          );
-          e.target.value = "";
-          return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const result = Storage.importData(event.target.result);
-          if (result.success) {
-            AppNotify.success(
-              currentLang === "ru"
-                ? `Import successful! ${result.count} products loaded.`
-                : `Import successful! ${result.count} products loaded.`
-            );
-            renderRecentProducts();
-            renderCharts();
-            renderReportPreview();
-            runCalculation();
-          } else {
-            AppNotify.warning(
-              currentLang === "ru"
-                ? `Import failed: ${result.error}`
-                : `Import failed: ${result.error}`
-            );
-          }
-        };
-        reader.readAsText(file);
-        e.target.value = ""; // reset for re-import
-      });
-    }
 
     const showAssumptionsBtn = $("showAssumptionsBtn");
     if (showAssumptionsBtn) showAssumptionsBtn.addEventListener("click", toggleAssumptions);

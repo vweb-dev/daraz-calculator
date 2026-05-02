@@ -550,36 +550,6 @@
     const sort = $("savedSortFilter");
     if (sort) sort.addEventListener("change", renderSavedProducts);
 
-    const exportBtn = $("exportDataBtn");
-    if (exportBtn) exportBtn.addEventListener("click", () => Storage.downloadExport());
-
-    const importInput = $("importFileInput");
-    if (importInput) {
-      importInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const result = Storage.importData(event.target.result);
-          if (result.success) {
-            AppNotify.success(currentLang === "ru" 
-              ? `Import successful! ${result.count} products loaded.`
-              : `Import successful! ${result.count} products loaded.`
-            );
-            allProducts = Storage.getProducts();
-            renderAll();
-          } else {
-            AppNotify.warning(currentLang === "ru"
-              ? `Import failed: ${result.error}`
-              : `Import failed: ${result.error}`
-            );
-          }
-        };
-        reader.readAsText(file);
-        e.target.value = ""; // reset for re-import
-      });
-    }
 
     const closeBtn = $("closeEditModalBtn");
     if (closeBtn) closeBtn.addEventListener("click", closeEditModal);
