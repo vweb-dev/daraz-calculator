@@ -609,6 +609,9 @@
     return result;
   }
 
+  // Expose runCalculation to global scope for event listeners
+  window.runCalculation = runCalculation;
+
   // ---------- PRINT ----------
 
   function printReport() {
@@ -1003,6 +1006,7 @@
 
   function init() {
     applyTranslations();
+    bindEvents();
     renderAssumptions();
     renderRecentProducts();
     renderCharts();
@@ -1020,7 +1024,6 @@
 
     applyTheme();
     runCalculation();
-    bindEvents();
   }
 
   document.addEventListener("DOMContentLoaded", init);
