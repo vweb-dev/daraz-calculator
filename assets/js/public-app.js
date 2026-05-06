@@ -193,13 +193,59 @@
 
   // ---------- ASSUMPTIONS ----------
 
-  function renderAssumptions() {
+  function renderAssumptions(result = {}) {
     settings = Storage.getSettings();
+    const formData = result.currentSellingPrice !== undefined ? result : getFormData();
+    const sellingPrice = Calc.toNumber(result.currentSellingPrice ?? formData.currentSellingPrice);
+    const packagingCost = Calc.toNumber(result.packagingCost ?? formData.packagingCost);
+
+    const commissionRate = Calc.toNumber(settings.commissionRate) / 100;
+    const paymentFeeRate = Calc.toNumber(settings.paymentFeeRate) / 100;
+    const shippingRate = Calc.toNumber(settings.freeShippingRate) / 100;
+    const coinsRate = Calc.toNumber(settings.coinsRate) / 100;
+    const voucherRate = Calc.toNumber(settings.voucherRate) / 100;
+    const incomeTaxRate = Calc.toNumber(settings.incomeTaxRate) / 100;
+    const salesTaxRate = Calc.toNumber(settings.salesTaxRate) / 100;
+
+    const commissionAmount = Calc.round2(sellingPrice * commissionRate);
+    const paymentFeeAmount = Calc.round2(sellingPrice * paymentFeeRate);
+    const freeShippingAmount = Calc.round2(sellingPrice * shippingRate);
+    const coinsAmount = Calc.round2(sellingPrice * coinsRate);
+    const voucherAmount = Calc.round2(sellingPrice * voucherRate);
+    const incomeTaxAmount = Calc.round2(sellingPrice * incomeTaxRate);
+    const salesTaxAmount = Calc.round2(sellingPrice * salesTaxRate);
+
+    const totalVariable = Calc.round2(
+      commissionAmount +
+      paymentFeeAmount +
+      freeShippingAmount +
+      coinsAmount +
+      voucherAmount +
+      incomeTaxAmount +
+      salesTaxAmount
+    );
+
+    const totalFixedCost = Calc.round2(
+      Calc.toNumber(settings.handlingFee) +
+      Calc.toNumber(settings.shippingShortfall) +
+      packagingCost
+    );
 
     setText("assumptionCommission", `${Calc.round2(settings.commissionRate).toFixed(2)}%`);
     setText("assumptionHandling", Calc.formatCurrency(settings.handlingFee));
     setText("assumptionShippingShortfall", Calc.formatCurrency(settings.shippingShortfall));
     setText("assumptionDiscount", `${Calc.round2(settings.defaultDiscountRate).toFixed(2)}%`);
+
+    setText("deductionCommissionAmount", Calc.formatCurrency(commissionAmount));
+    setText("deductionPaymentFeeAmount", Calc.formatCurrency(paymentFeeAmount));
+    setText("deductionFreeShippingAmount", Calc.formatCurrency(freeShippingAmount));
+    setText("deductionCoinsAmount", Calc.formatCurrency(coinsAmount));
+    setText("deductionVoucherAmount", Calc.formatCurrency(voucherAmount));
+    setText("deductionIncomeTaxAmount", Calc.formatCurrency(incomeTaxAmount));
+    setText("deductionSalesTaxAmount", Calc.formatCurrency(salesTaxAmount));
+    setText("deductionVariableTotal", Calc.formatCurrency(totalVariable));
+    setText("assumptionPackagingCost", Calc.formatCurrency(packagingCost));
+    setText("deductionFixedTotal", Calc.formatCurrency(totalFixedCost));
   }
 
   function toggleAssumptions() {

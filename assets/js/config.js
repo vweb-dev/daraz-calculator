@@ -100,6 +100,14 @@ window.APP_CONFIG = {
       quickCalculatorTitle: "Quick Calculator",
       quickCalculatorSubtitle: "Enter buying price and instantly see safe prices, current loss, competitor gap, and bundle result.",
 
+      welcomeTitle: "Welcome to Daraz Calculator Pro!",
+      welcomeMessage: "Enter your buying price below and get instant pricing recommendations, bundle suggestions, and profit analysis.",
+      bundleCalculatorTitle: "Bundle Calculator",
+      bundleCalculatorSubtitle: "Enter a target bundle price to see how bundling can increase your profits.",
+      bundleInsightTitle: "Bundle Insights",
+      bundleInsightText: "Enter a target bundle price to see how bundling can increase your profits.",
+      bundleTargetPrice: "Target Bundle Price",
+
       calculateNow: "Calculate Now",
       saveProduct: "Save Product",
       clear: "Clear",
@@ -185,6 +193,14 @@ window.APP_CONFIG = {
 
       quickCalculatorTitle: "Quick Calculator",
       quickCalculatorSubtitle: "Buying price likho aur foran safe price, current nuksan, competitor gap, aur bundle result dekh lo.",
+
+      welcomeTitle: "Daraz Calculator Pro mein khush aamdeed!",
+      welcomeMessage: "Apna buying price niche daalein aur foran pricing recommendations, bundle suggestions, aur profit analysis hasil karein.",
+      bundleCalculatorTitle: "Bundle Calculator",
+      bundleCalculatorSubtitle: "Bundling se aap apne munafe ko kaise barha sakte hain, dekhne ke liye target bundle price dalein.",
+      bundleInsightTitle: "Bundle Insights",
+      bundleInsightText: "Bundling se fayda dekhne ke liye target bundle price enter karein.",
+      bundleTargetPrice: "Target Bundle Price",
 
       calculateNow: "Hisaab Karo",
       saveProduct: "Save Karo",
