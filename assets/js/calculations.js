@@ -393,7 +393,7 @@
     buyingPrice = 0,
     packagingCost = 0,
     currentSellingPrice = 0,
-    bundleQty = 12,
+    bundleQty = 1,
     competitorTotalPrice = 0,
     competitorQty = 0,
     settings = defaults.settings,

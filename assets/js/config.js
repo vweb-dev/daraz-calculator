@@ -36,7 +36,7 @@ window.APP_CONFIG = {
       buyingPrice: "",
       packagingCost: 0,
       currentSellingPrice: "",
-      bundleQty: 12,
+      bundleQty: 1,
       competitorTotalPrice: "",
       competitorQty: ""
     },

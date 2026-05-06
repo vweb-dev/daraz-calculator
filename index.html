@@ -167,11 +167,12 @@
                         <div class="field">
                             <label for="bundleQtyInput" data-i18n="maxBundleQty">Bundle Qty</label>
                             <select id="bundleQtyInput">
+                                <option value="1">1x</option>
                                 <option value="2">2x</option>
                                 <option value="3">3x</option>
                                 <option value="5">5x</option>
                                 <option value="10">10x</option>
-                                <option value="12" selected>12x</option>
+                                <option value="12">12x</option>
                             </select>
                             <p class="field-note">The bundle quantity used to compare per-piece and bundle pricing.</p>
                         </div>
@@ -362,6 +363,17 @@
                     </div>
 
                     <div class="bundle-results" id="bundleResults">
+                        <div class="bundle-scenario" data-qty="1">
+                            <div class="bundle-scenario__header">
+                                <span class="bundle-scenario__qty">1x Single</span>
+                                <span class="bundle-scenario__profit" id="bundle1Profit">PKR 0.00</span>
+                            </div>
+                            <div class="bundle-scenario__details">
+                                <span class="bundle-scenario__price" id="bundle1Price">PKR 0.00</span>
+                                <span class="bundle-scenario__per-piece" id="bundle1PerPiece">PKR 0.00/piece</span>
+                            </div>
+                        </div>
+
                         <div class="bundle-scenario" data-qty="2">
                             <div class="bundle-scenario__header">
                                 <span class="bundle-scenario__qty">2x Bundle</span>

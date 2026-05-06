@@ -255,7 +255,7 @@
       buyingPrice: product.buyingPrice || "",
       packagingCost: product.packagingCost || 0,
       currentSellingPrice: product.currentSellingPrice || "",
-      bundleQty: product.bundleQty || 12,
+      bundleQty: product.bundleQty || 1,
       tag: product.tag || "",
       competitorTotalPrice: product.competitorTotalPrice || "",
       competitorQty: product.competitorQty || ""
@@ -290,7 +290,7 @@
     setValue("editBuyingPriceInput", product.buyingPrice || "");
     setValue("editPackagingCostInput", product.packagingCost || 0);
     setValue("editCurrentSellingPriceInput", product.currentSellingPrice || "");
-    setValue("editBundleQtyInput", product.bundleQty || 12);
+    setValue("editBundleQtyInput", product.bundleQty || 1);
     setValue("editProductTagInput", product.tag || "");
     setValue("editCompetitorTotalPriceInput", product.competitorTotalPrice || "");
     setValue("editCompetitorQtyInput", product.competitorQty || "");

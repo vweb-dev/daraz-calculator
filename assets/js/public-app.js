@@ -181,7 +181,7 @@
     setValue("buyingPriceInput", data.buyingPrice ?? "");
     setValue("packagingCostInput", data.packagingCost ?? 0);
     setValue("currentSellingPriceInput", data.currentSellingPrice ?? "");
-    setValue("bundleQtyInput", data.bundleQty ?? 12);
+    setValue("bundleQtyInput", data.bundleQty ?? 1);
     setValue("competitorTotalPriceInput", data.competitorTotalPrice ?? "");
     setValue("competitorQtyInput", data.competitorQty ?? "");
   }
@@ -798,7 +798,7 @@
 
     if (!targetPrice || !buyingPrice) {
       // Reset bundle results
-      [2, 5, 10].forEach(qty => {
+      [1, 2, 5, 10].forEach(qty => {
         setText(`bundle${qty}Price`, "PKR 0.00");
         setText(`bundle${qty}Profit`, "PKR 0.00");
         setText(`bundle${qty}PerPiece`, "PKR 0.00/piece");
@@ -810,13 +810,14 @@
     }
 
     const scenarios = [
+      { qty: 1, element: "bundle1" },
       { qty: 2, element: "bundle2" },
       { qty: 5, element: "bundle5" },
       { qty: 10, element: "bundle10" }
     ];
 
     let bestProfit = 0;
-    let bestQty = 2;
+    let bestQty = 1;
 
     scenarios.forEach(({ qty, element }) => {
       const totalBuying = buyingPrice * qty;
