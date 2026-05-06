@@ -31,36 +31,8 @@
     </header>
 
     <main class="main-content">
-      <!-- LOGIN GATE -->
-      <section class="panel glass" id="adminLoginPanel">
-        <div class="panel__header">
-          <div>
-            <h2 class="panel__title">Admin Access</h2>
-            <p class="panel__subtitle">Enter password to edit system assumptions.</p>
-          </div>
-        </div>
-
-        <div class="panel__body">
-          <div class="form-grid">
-            <div class="field field--full">
-              <label for="adminPasswordInput">Password</label>
-              <input
-                id="adminPasswordInput"
-                type="password"
-                placeholder="Enter admin password"
-              />
-            </div>
-          </div>
-
-          <div class="action-row">
-            <button class="btn btn--primary" id="adminLoginBtn" type="button">Unlock Admin</button>
-            <a href="index.html" class="btn btn--ghost">Back to Calculator</a>
-          </div>
-        </div>
-      </section>
-
-      <!-- ADMIN PANEL -->
-      <section class="panel glass hidden" id="adminSettingsPanel">
+        <!-- ADMIN PANEL -->
+      <section class="panel glass" id="adminSettingsPanel">
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Pricing Assumptions</h2>
@@ -168,7 +140,6 @@
           <div class="action-row">
             <button class="btn btn--primary" id="saveAdminSettingsBtn" type="button">Save Settings</button>
             <button class="btn btn--ghost" id="resetAdminSettingsBtn" type="button">Reset Defaults</button>
-            <button class="btn btn--ghost" id="adminLogoutBtn" type="button">Lock Admin</button>
             <a href="index.html" class="btn btn--success">Open Calculator</a>
           </div>
 

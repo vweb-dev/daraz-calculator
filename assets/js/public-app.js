@@ -296,10 +296,34 @@
     setText("marginPercentValue", result.formatted.marginPercent);
     setText("statusValue", getStatusLabel(result.healthStatus));
 
-    setText("competitorPerPieceValue", result.formatted.competitorPerPiece);
-    setText("yourPerPieceValue", result.formatted.yourPerPiece);
-    setText("priceGapValue", result.formatted.priceGap);
-    setText("marketPositionValue", result.marketPosition);
+    setText("quickProfitCardValue", result.formatted.profitLoss);
+    setText("quickYourPerPieceValue", result.formatted.yourPerPiece);
+    setText("quickBundleHintCardValue", result.bundleHint || "-");
+
+    setText("competitorPerPieceValue", result.formatted.competitorPerPiece || "-");
+    setText("yourPerPieceValue", result.formatted.yourPerPiece || "-");
+    setText("priceGapValue", result.formatted.priceGap || "-");
+    setText("marketPositionValue", result.marketPosition || "-");
+  }
+
+  function renderAdvisor(result) {
+    const defaultAdvice = currentLang === "ru"
+      ? "Buying price daalein taake foran recommendations milen." 
+      : "Set buying price to get instant recommendations.";
+    const defaultBundle = currentLang === "ru"
+      ? "Bundle recommendation ke liye price daalein." 
+      : "Use bundle suggestion for better margins.";
+    const defaultCompetitor = currentLang === "ru"
+      ? "Muqable ki qeemat ke mutabiq apne product ki qeemat set karein."
+      : "Price your product relative to competition.";
+
+    const advisorTip = result?.recommendation?.message || defaultAdvice;
+    const advisorBundleHint = result?.bundleHint || defaultBundle;
+    const advisorMarketPosition = result?.marketPosition || defaultCompetitor;
+
+    setText("advisorTip", advisorTip);
+    setText("advisorBundleHint", advisorBundleHint);
+    setText("advisorMarketPosition", advisorMarketPosition);
   }
 
   // ---------- RECENT PRODUCTS ----------
@@ -635,9 +659,10 @@
     // add formatted current selling price for convenience
     result.formatted.currentSellingPrice = Calc.formatCurrency(result.currentSellingPrice);
 
-    renderAssumptions();
+    renderAssumptions(result);
     renderHero(result);
     renderOverview(result);
+    renderAdvisor(result);
     renderCharts();
     renderReportPreview();
 

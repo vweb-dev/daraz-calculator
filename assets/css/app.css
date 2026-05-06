@@ -625,6 +625,13 @@ a {
     color: var(--danger);
 }
 
+.field-note {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.3;
+}
+
 .header-actions {
     display: flex;
     gap: 8px;
@@ -868,6 +875,48 @@ textarea:valid {
     font-size: 1.3rem;
     line-height: 1.3;
     letter-spacing: -0.01em;
+}
+
+.advisor-panel {
+    padding: 16px 20px;
+}
+
+.advisor-panel .panel__header {
+    margin-bottom: 10px;
+}
+
+.advisor-panel .panel__title {
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+
+.advisor-panel .panel__subtitle {
+    font-size: 0.88rem;
+    margin: 0;
+    color: rgba(94, 106, 130, 0.9);
+}
+
+.advisor-panel .advisor-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.advisor-panel .metric-card {
+    padding: 12px 14px;
+    min-height: auto;
+    justify-content: flex-start;
+}
+
+.advisor-panel .metric-card__label {
+    font-size: 0.82rem;
+    line-height: 1.2;
+    margin-bottom: 6px;
+}
+
+.advisor-panel .metric-card__value {
+    font-size: 1.1rem;
+    line-height: 1.3;
 }
 
 /* Bundle Calculator - Apple style */

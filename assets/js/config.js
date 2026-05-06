@@ -26,7 +26,6 @@ window.APP_CONFIG = {
   },
 
   admin: {
-    defaultPassword: "vweb123!"
   },
 
   defaults: {
@@ -123,13 +122,16 @@ window.APP_CONFIG = {
       currentSellingPrice: "Current Selling Price",
       sellingPricePlaceholder: "e.g. 35",
 
-      maxBundleQty: "Max Bundle Qty",
+      maxBundleQty: "Bundle Qty",
 
       competitorTotalPrice: "Competitor Total Price",
       competitorTotalPlaceholder: "e.g. 180",
 
       competitorQty: "Competitor Quantity",
       competitorQtyPlaceholder: "e.g. 6",
+
+      competitorPricingTitle: "Competitor Pricing",
+      competitorPricingSubtitle: "Compare your listing with competitor total price and per-item quantity.",
 
       showAssumptions: "Show all fee & cost assumptions",
       commissionRate: "Commission Rate",
@@ -217,13 +219,16 @@ window.APP_CONFIG = {
       currentSellingPrice: "Current Selling Price",
       sellingPricePlaceholder: "misal: 35",
 
-      maxBundleQty: "Max Bundle Qty",
+      maxBundleQty: "Bundle Qty",
 
       competitorTotalPrice: "Competitor Total Price",
       competitorTotalPlaceholder: "misal: 180",
 
       competitorQty: "Competitor Quantity",
       competitorQtyPlaceholder: "misal: 6",
+
+      competitorPricingTitle: "Competitor Pricing",
+      competitorPricingSubtitle: "Apni listing ko competitor ke total price aur per-item quantity se compare karein.",
 
       showAssumptions: "Saari fee aur cost assumptions dekho",
       commissionRate: "Commission Rate",

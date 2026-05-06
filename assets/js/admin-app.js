@@ -57,43 +57,6 @@
     applyTranslations();
   }
 
-  // ---------- ADMIN AUTH ----------
-
-  function isAdminUnlocked() {
-    const raw = Storage.getItem(storageKeys.adminAuth, false);
-    return !!raw;
-  }
-
-  function unlockAdmin() {
-    const pass = getValue("adminPasswordInput");
-
-    if (pass === admin.defaultPassword) {
-      Storage.setItem(storageKeys.adminAuth, true);
-      renderAuthState();
-    } else {
-      AppNotify.error(currentLang === "ru" ? "Ghalat password." : "Incorrect password.");
-    }
-  }
-
-  function lockAdmin() {
-    Storage.removeItem(storageKeys.adminAuth);
-    renderAuthState();
-  }
-
-  function renderAuthState() {
-    const unlocked = isAdminUnlocked();
-
-    const loginPanel = $("adminLoginPanel");
-    const settingsPanel = $("adminSettingsPanel");
-
-    if (loginPanel) loginPanel.classList.toggle("hidden", unlocked);
-    if (settingsPanel) settingsPanel.classList.toggle("hidden", !unlocked);
-
-    if (unlocked) {
-      fillSettingsForm();
-    }
-  }
-
   // ---------- SETTINGS FORM ----------
 
   function fillSettingsForm() {
@@ -333,17 +296,11 @@
     const langToggle = $("langToggle");
     if (langToggle) langToggle.addEventListener("click", toggleLanguage);
 
-    const loginBtn = $("adminLoginBtn");
-    if (loginBtn) loginBtn.addEventListener("click", unlockAdmin);
-
     const saveBtn = $("saveAdminSettingsBtn");
     if (saveBtn) saveBtn.addEventListener("click", saveSettings);
 
     const resetBtn = $("resetAdminSettingsBtn");
     if (resetBtn) resetBtn.addEventListener("click", resetSettings);
-
-    const logoutBtn = $("adminLogoutBtn");
-    if (logoutBtn) logoutBtn.addEventListener("click", lockAdmin);
 
     // Calculation details toggle
     const toggleDetailsBtn = $("toggleCalculationDetailsBtn");
@@ -363,19 +320,11 @@
       }
     });
 
-    const passwordInput = $("adminPasswordInput");
-    if (passwordInput) {
-      passwordInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          unlockAdmin();
-        }
-      });
-    }
   }
 
   function init() {
     applyTranslations();
-    renderAuthState();
+    fillSettingsForm();
     bindEvents();
   }
 

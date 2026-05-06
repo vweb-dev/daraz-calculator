@@ -111,6 +111,21 @@
                         </button>
                     </div>
 
+                    <div class="metric-grid quick-summary-grid" style="margin-bottom:18px;">
+                        <article class="metric-card glass-soft">
+                            <span class="metric-card__label" data-i18n="profitLoss">Profit / Loss</span>
+                            <strong class="metric-card__value" id="quickProfitCardValue">PKR 0.00</strong>
+                        </article>
+                        <article class="metric-card glass-soft">
+                            <span class="metric-card__label" data-i18n="yourPerPiece">Your Per Piece</span>
+                            <strong class="metric-card__value" id="quickYourPerPieceValue">PKR 0.00</strong>
+                        </article>
+                        <article class="metric-card glass-soft">
+                            <span class="metric-card__label" data-i18n="bundleHint">Bundle Hint</span>
+                            <strong class="metric-card__value metric-card__value--small" id="quickBundleHintCardValue">-</strong>
+                        </article>
+                    </div>
+
                     <div class="form-grid form-grid--main">
                         <div class="field field--full">
                             <label for="skuInput" data-i18n="skuProductName">SKU / Product Name</label>
@@ -150,7 +165,7 @@
                         </div>
 
                         <div class="field">
-                            <label for="bundleQtyInput" data-i18n="maxBundleQty">Max Bundle Qty</label>
+                            <label for="bundleQtyInput" data-i18n="maxBundleQty">Bundle Qty</label>
                             <select id="bundleQtyInput">
                                 <option value="2">2x</option>
                                 <option value="3">3x</option>
@@ -158,20 +173,9 @@
                                 <option value="10">10x</option>
                                 <option value="12" selected>12x</option>
                             </select>
+                            <p class="field-note">The bundle quantity used to compare per-piece and bundle pricing.</p>
                         </div>
 
-                        <div class="field">
-                            <label for="competitorTotalPriceInput" data-i18n="competitorTotalPrice">Competitor Total
-                                Price</label>
-                            <input id="competitorTotalPriceInput" type="number" inputmode="decimal"
-                                placeholder="e.g. 180" data-i18n-placeholder="competitorTotalPlaceholder" />
-                        </div>
-
-                        <div class="field">
-                            <label for="competitorQtyInput" data-i18n="competitorQty">Competitor Quantity</label>
-                            <input id="competitorQtyInput" type="number" inputmode="numeric" placeholder="e.g. 6"
-                                data-i18n-placeholder="competitorQtyPlaceholder" />
-                        </div>
                     </div>
 
                     <div class="quick-step-row">
@@ -245,6 +249,52 @@
                                 <strong id="deductionFixedTotal">PKR 0.00</strong>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel glass competitor-panel" id="competitorSection">
+                <div class="panel__header">
+                    <div>
+                        <h2 class="panel__title" data-i18n="competitorPricingTitle">Competitor Pricing</h2>
+                        <p class="panel__subtitle" data-i18n="competitorPricingSubtitle">
+                            Compare your listing with competitor total price and per-item quantity.
+                        </p>
+                    </div>
+                </div>
+                <div class="panel__body">
+                    <div class="form-grid form-grid--main">
+                        <div class="field">
+                            <label for="competitorTotalPriceInput" data-i18n="competitorTotalPrice">Competitor Total Price</label>
+                            <input id="competitorTotalPriceInput" type="number" inputmode="decimal" placeholder="e.g. 180"
+                                data-i18n-placeholder="competitorTotalPlaceholder" />
+                        </div>
+
+                        <div class="field">
+                            <label for="competitorQtyInput" data-i18n="competitorQty">Competitor Quantity</label>
+                            <input id="competitorQtyInput" type="number" inputmode="numeric" placeholder="e.g. 6"
+                                data-i18n-placeholder="competitorQtyPlaceholder" />
+                        </div>
+                    </div>
+                    <p class="field-note">Use competitor price and units to see how your current price compares per piece.</p>
+
+                    <div class="metric-grid" style="margin-top: 20px;">
+                        <article class="metric-card glass-soft">
+                            <span class="metric-card__label" data-i18n="competitorPerPiece">Competitor Per Piece</span>
+                            <strong class="metric-card__value" id="competitorPerPieceValue">PKR 0.00</strong>
+                        </article>
+                        <article class="metric-card glass-soft">
+                            <span class="metric-card__label" data-i18n="yourPerPiece">Your Per Piece</span>
+                            <strong class="metric-card__value" id="yourPerPieceValue">PKR 0.00</strong>
+                        </article>
+                        <article class="metric-card glass-soft">
+                            <span class="metric-card__label" data-i18n="priceGap">Gap</span>
+                            <strong class="metric-card__value" id="priceGapValue">PKR 0.00</strong>
+                        </article>
+                        <article class="metric-card glass-soft">
+                            <span class="metric-card__label" data-i18n="marketPosition">Market Position</span>
+                            <strong class="metric-card__value metric-card__value--small" id="marketPositionValue">-</strong>
+                        </article>
                     </div>
                 </div>
             </section>
@@ -427,32 +477,6 @@
                             </div>
                         </div>
 
-                        <div class="result-group">
-                            <h3 class="result-group__title" data-i18n="competitorView">Competitor View</h3>
-                            <div class="metric-grid">
-                                <article class="metric-card glass-soft">
-                                    <span class="metric-card__label" data-i18n="competitorPerPiece">Competitor Per
-                                        Piece</span>
-                                    <strong class="metric-card__value" id="competitorPerPieceValue">PKR 0.00</strong>
-                                </article>
-
-                                <article class="metric-card glass-soft">
-                                    <span class="metric-card__label" data-i18n="yourPerPiece">Your Per Piece</span>
-                                    <strong class="metric-card__value" id="yourPerPieceValue">PKR 0.00</strong>
-                                </article>
-
-                                <article class="metric-card glass-soft">
-                                    <span class="metric-card__label" data-i18n="priceGap">Gap</span>
-                                    <strong class="metric-card__value" id="priceGapValue">PKR 0.00</strong>
-                                </article>
-
-                                <article class="metric-card glass-soft">
-                                    <span class="metric-card__label" data-i18n="marketPosition">Market Position</span>
-                                    <strong class="metric-card__value metric-card__value--small"
-                                        id="marketPositionValue">-</strong>
-                                </article>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </section>
