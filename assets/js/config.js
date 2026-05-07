@@ -42,6 +42,8 @@ window.APP_CONFIG = {
     },
 
     settings: {
+      // Daraz Settings
+      mode: "daraz",
       commissionRate: 23.20,
       paymentFeeRate: 2.62,
       freeShippingRate: 6.96,
@@ -53,7 +55,16 @@ window.APP_CONFIG = {
       shippingShortfall: 16.87,
       defaultDiscountRate: 10.00,
       defaultTargetMarginRate: 10.00,
-      bundleQuantities: [1, 2, 3, 5, 10, 12]
+      bundleQuantities: [1, 2, 3, 5, 10, 12],
+      
+      // Website/Direct Sales Settings
+      codFeeSameCity: 150,
+      codFeeOtherCities: 250,
+      monthlyHostingCost: 10000,
+      expectedMonthlyOrders: 30,
+      paymentGatewayFeeWebsite: 2,
+      deliveryLocation: "same-city",
+      websiteSalesTaxRate: 0
     },
     theme: "light"
   },

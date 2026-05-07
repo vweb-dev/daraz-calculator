@@ -54,7 +54,10 @@
             <section class="hero-status glass" id="heroStatusCard">
                 <div class="hero-status__top">
                     <p class="hero-status__label" data-i18n="heroStatusLabel">Live Decision</p>
-                    <span class="hero-status__badge badge badge--neutral" id="heroHealthBadge">Safe</span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="hero-status__badge badge badge--neutral" id="heroHealthBadge">Safe</span>
+                        <span class="hero-status__badge badge" id="heroModeBadge" style="background: rgba(100, 200, 255, 0.3); border: 1px solid rgba(100, 200, 255, 0.5);">Daraz</span>
+                    </div>
                 </div>
 
                 <div class="hero-status__body">
@@ -82,7 +85,7 @@
                 <div class="panel__header">
                     <div>
                         <h2 class="panel__title" data-i18n="quickCalculatorTitle">Quick Calculator</h2>
-                        <p class="panel__subtitle" data-i18n="quickCalculatorSubtitle">
+                        <p class="panel__subtitle" id="pricingModeSubtitle" data-i18n="quickCalculatorSubtitle">
                             Enter buying price and instantly see safe prices, current loss, competitor gap, and bundle
                             result.
                         </p>
@@ -190,7 +193,19 @@
                     </button>
 
                     <div class="assumptions-box glass-soft hidden" id="assumptionsBox">
-                        <div class="assumptions-grid">
+                        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <label style="display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500;">
+                                <span>Pricing Mode:</span>
+                                <select id="pricingModeToggle" style="padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);">
+                                    <option value="daraz">Daraz Marketplace</option>
+                                    <option value="website">Direct Website / COD</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <!-- DARAZ ASSUMPTIONS -->
+                        <div id="darazAssumptionsSection">
+                            <div class="assumptions-grid">
                             <div class="assumption-item">
                                 <span data-i18n="commissionRate">Commission Rate</span>
                                 <strong id="assumptionCommission">23.20%</strong>
@@ -248,6 +263,83 @@
                             <div class="assumption-item">
                                 <span>Total Fixed Costs</span>
                                 <strong id="deductionFixedTotal">PKR 0.00</strong>
+                            </div>
+                        </div>
+                        </div>
+
+                        <!-- WEBSITE ASSUMPTIONS -->
+                        <div id="websiteAssumptionsSection" style="display: none;">
+                            <div class="assumptions-grid">
+                                <div class="assumption-item">
+                                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">COD Fee</label>
+                                    <input type="number" id="codFeeSameCityInput" placeholder="150" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
+                                    <small style="display: block; margin-top: 4px;">Same City</small>
+                                </div>
+                                <div class="assumption-item">
+                                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">COD Fee (Other)</label>
+                                    <input type="number" id="codFeeOtherCitiesInput" placeholder="250" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
+                                    <small style="display: block; margin-top: 4px;">Other Cities</small>
+                                </div>
+                                <div class="assumption-item">
+                                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">Monthly Hosting</label>
+                                    <input type="number" id="monthlyHostingInput" placeholder="10000" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
+                                    <small style="display: block; margin-top: 4px;">PKR</small>
+                                </div>
+                                <div class="assumption-item">
+                                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">Monthly Orders</label>
+                                    <input type="number" id="expectedOrdersInput" placeholder="30" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
+                                    <small style="display: block; margin-top: 4px;">Expected</small>
+                                </div>
+                            </div>
+
+                            <div class="assumptions-grid" style="margin-top: 16px;">
+                                <div class="assumption-item">
+                                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">Delivery Location</label>
+                                    <select id="deliveryLocationSelect" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;">
+                                        <option value="same-city">Same City (150 PKR)</option>
+                                        <option value="other-cities">Other Cities (250 PKR)</option>
+                                    </select>
+                                </div>
+                                <div class="assumption-item">
+                                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">Payment Gateway Fee</label>
+                                    <input type="number" id="paymentGatewayFeeInput" placeholder="2" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
+                                    <small style="display: block; margin-top: 4px;">%</small>
+                                </div>
+                                <div class="assumption-item">
+                                    <span>Hosting per Order</span>
+                                    <strong id="assumptionHostingPerOrder">PKR 333</strong>
+                                </div>
+                                <div class="assumption-item">
+                                    <span>Current COD Fee</span>
+                                    <strong id="assumptionCODFee">PKR 150</strong>
+                                </div>
+                            </div>
+
+                            <div class="assumptions-grid" style="margin-top: 16px;">
+                                <div class="assumption-item">
+                                    <span>COD Charge Amount</span>
+                                    <strong id="deductionCODAmount">PKR 0.00</strong>
+                                </div>
+                                <div class="assumption-item">
+                                    <span>Hosting Amount</span>
+                                    <strong id="deductionHostingAmount">PKR 0.00</strong>
+                                </div>
+                                <div class="assumption-item">
+                                    <span>Payment Gateway Amount</span>
+                                    <strong id="deductionGatewayAmount">PKR 0.00</strong>
+                                </div>
+                                <div class="assumption-item">
+                                    <span>Total Variable Deductions</span>
+                                    <strong id="deductionWebsiteVariableTotal">PKR 0.00</strong>
+                                </div>
+                                <div class="assumption-item">
+                                    <span>Packaging Cost</span>
+                                    <strong id="assumptionWebsitePackagingCost">PKR 0.00</strong>
+                                </div>
+                                <div class="assumption-item">
+                                    <span>Total Fixed Costs</span>
+                                    <strong id="deductionWebsiteFixedTotal">PKR 0.00</strong>
+                                </div>
                             </div>
                         </div>
                     </div>

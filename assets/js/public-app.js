@@ -198,7 +198,21 @@
     const formData = result.currentSellingPrice !== undefined ? result : getFormData();
     const sellingPrice = Calc.toNumber(result.currentSellingPrice ?? formData.currentSellingPrice);
     const packagingCost = Calc.toNumber(result.packagingCost ?? formData.packagingCost);
+    const pricingMode = settings.mode || "daraz";
 
+    // Render based on pricing mode
+    if (pricingMode === "website") {
+      renderWebsiteAssumptions(sellingPrice, packagingCost, settings);
+      $("darazAssumptionsSection").style.display = "none";
+      $("websiteAssumptionsSection").style.display = "block";
+    } else {
+      renderDarazAssumptions(sellingPrice, packagingCost, settings);
+      $("darazAssumptionsSection").style.display = "block";
+      $("websiteAssumptionsSection").style.display = "none";
+    }
+  }
+
+  function renderDarazAssumptions(sellingPrice, packagingCost, settings) {
     const commissionRate = Calc.toNumber(settings.commissionRate) / 100;
     const paymentFeeRate = Calc.toNumber(settings.paymentFeeRate) / 100;
     const shippingRate = Calc.toNumber(settings.freeShippingRate) / 100;
@@ -248,6 +262,39 @@
     setText("deductionFixedTotal", Calc.formatCurrency(totalFixedCost));
   }
 
+  function renderWebsiteAssumptions(sellingPrice, packagingCost, settings) {
+    const codFee = settings.deliveryLocation === "other-cities"
+      ? Calc.toNumber(settings.codFeeOtherCities)
+      : Calc.toNumber(settings.codFeeSameCity);
+    
+    const hostingPerOrder = Calc.round2(
+      Calc.toNumber(settings.monthlyHostingCost) / Calc.toNumber(settings.expectedMonthlyOrders)
+    );
+
+    const paymentGatewayRate = Calc.toNumber(settings.paymentGatewayFeeWebsite) / 100;
+    const gatewayAmount = Calc.round2(sellingPrice * paymentGatewayRate);
+
+    const totalVariable = Calc.round2(gatewayAmount);
+    const totalFixed = Calc.round2(codFee + hostingPerOrder + packagingCost);
+
+    // Populate input fields
+    setValue("codFeeSameCityInput", settings.codFeeSameCity);
+    setValue("codFeeOtherCitiesInput", settings.codFeeOtherCities);
+    setValue("monthlyHostingInput", settings.monthlyHostingCost);
+    setValue("expectedOrdersInput", settings.expectedMonthlyOrders);
+    setValue("paymentGatewayFeeInput", settings.paymentGatewayFeeWebsite);
+    setValue("deliveryLocationSelect", settings.deliveryLocation);
+
+    setText("assumptionCODFee", Calc.formatCurrency(codFee));
+    setText("assumptionHostingPerOrder", Calc.formatCurrency(hostingPerOrder));
+    setText("deductionCODAmount", Calc.formatCurrency(codFee));
+    setText("deductionHostingAmount", Calc.formatCurrency(hostingPerOrder));
+    setText("deductionGatewayAmount", Calc.formatCurrency(gatewayAmount));
+    setText("deductionWebsiteVariableTotal", Calc.formatCurrency(totalVariable));
+    setText("assumptionWebsitePackagingCost", Calc.formatCurrency(packagingCost));
+    setText("deductionWebsiteFixedTotal", Calc.formatCurrency(totalFixed));
+  }
+
   function toggleAssumptions() {
     const box = $("assumptionsBox");
     if (!box) return;
@@ -270,6 +317,28 @@
     if (badge) {
       badge.textContent = getStatusLabel(result.healthStatus);
       badge.className = `hero-status__badge badge ${result.healthStatus.className}`;
+    }
+
+    const modeBadge = $("heroModeBadge");
+    if (modeBadge) {
+      const mode = settings.mode === "website" ? "Website" : "Daraz";
+      modeBadge.textContent = mode;
+      modeBadge.style.background = settings.mode === "website" 
+        ? "rgba(100, 255, 150, 0.3)" 
+        : "rgba(100, 200, 255, 0.3)";
+      modeBadge.style.borderColor = settings.mode === "website" 
+        ? "rgba(100, 255, 150, 0.5)" 
+        : "rgba(100, 200, 255, 0.5)";
+    }
+
+    // Update pricing mode subtitle
+    const modeSubtitle = $("pricingModeSubtitle");
+    if (modeSubtitle) {
+      if (settings.mode === "website") {
+        modeSubtitle.textContent = "🌐 Website Mode: COD + Hosting Fees | Calculate price for direct sales";
+      } else {
+        modeSubtitle.textContent = "📦 Daraz Mode: Marketplace fees included | Safe prices for Daraz marketplace";
+      }
     }
 
     setText("heroProfitValue", result.formatted.profitLoss);
@@ -932,6 +1001,47 @@
 
     const langToggle = $("langToggle");
     if (langToggle) langToggle.addEventListener("click", toggleLanguage);
+
+    const pricingModeToggle = $("pricingModeToggle");
+    if (pricingModeToggle) {
+      pricingModeToggle.addEventListener("change", (e) => {
+        const newMode = e.target.value;
+        settings.mode = newMode;
+        Storage.saveSettings(settings);
+        runCalculation();
+        renderAssumptions();
+      });
+      // Set initial value
+      pricingModeToggle.value = settings.mode || "daraz";
+    }
+
+    // Website settings inputs
+    const websiteSettingIds = [
+      "codFeeSameCityInput",
+      "codFeeOtherCitiesInput",
+      "monthlyHostingInput",
+      "expectedOrdersInput",
+      "paymentGatewayFeeInput",
+      "deliveryLocationSelect"
+    ];
+
+    websiteSettingIds.forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      el.addEventListener("change", () => {
+        // Update settings from inputs
+        settings.codFeeSameCity = Calc.toNumber(getValue("codFeeSameCityInput")) || 150;
+        settings.codFeeOtherCities = Calc.toNumber(getValue("codFeeOtherCitiesInput")) || 250;
+        settings.monthlyHostingCost = Calc.toNumber(getValue("monthlyHostingInput")) || 10000;
+        settings.expectedMonthlyOrders = Calc.toNumber(getValue("expectedOrdersInput")) || 30;
+        settings.paymentGatewayFeeWebsite = Calc.toNumber(getValue("paymentGatewayFeeInput")) || 2;
+        settings.deliveryLocation = getValue("deliveryLocationSelect") || "same-city";
+        
+        Storage.saveSettings(settings);
+        runCalculation();
+        renderAssumptions();
+      });
+    });
 
     const calcBtn = $("calculateNowBtn");
     if (calcBtn) calcBtn.addEventListener("click", runCalculation);

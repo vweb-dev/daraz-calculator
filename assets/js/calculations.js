@@ -55,6 +55,27 @@
     );
   }
 
+  function getWebsiteVariableRate(settings) {
+    const paymentGatewayFee = toNumber(settings.paymentGatewayFeeWebsite) / 100;
+    const websiteTax = toNumber(settings.websiteSalesTaxRate) / 100;
+    return paymentGatewayFee + websiteTax;
+  }
+
+  function getWebsiteFixedCosts(settings, packagingCost = 0) {
+    const codFee = settings.deliveryLocation === "other-cities"
+      ? toNumber(settings.codFeeOtherCities)
+      : toNumber(settings.codFeeSameCity);
+    
+    const hostingPerOrder = toNumber(settings.monthlyHostingCost) / 
+                            toNumber(settings.expectedMonthlyOrders);
+    
+    return (
+      codFee +
+      hostingPerOrder +
+      toNumber(packagingCost)
+    );
+  }
+
   // ---------- CORE PRICE CALCULATIONS ----------
 
   function calculateMinimumPrice(buyingPrice, packagingCost, settings) {
@@ -68,11 +89,34 @@
     return round2(result);
   }
 
+  function calculateMinimumPriceWebsite(buyingPrice, packagingCost, settings) {
+    const buy = toNumber(buyingPrice);
+    const variableRate = getWebsiteVariableRate(settings);
+    const fixedCosts = getWebsiteFixedCosts(settings, packagingCost);
+
+    if (variableRate >= 1) return 0;
+
+    const result = (buy + fixedCosts) / (1 - variableRate);
+    return round2(result);
+  }
+
   function calculateRecommendedPrice(buyingPrice, packagingCost, settings) {
     const buy = toNumber(buyingPrice);
     const variableRate = getVariableRate(settings);
     const targetMarginRate = toNumber(settings.defaultTargetMarginRate) / 100;
     const fixedCosts = getFixedCosts(settings, packagingCost);
+
+    if ((1 - variableRate - targetMarginRate) <= 0) return 0;
+
+    const result = (buy + fixedCosts) / (1 - variableRate - targetMarginRate);
+    return round2(result);
+  }
+
+  function calculateRecommendedPriceWebsite(buyingPrice, packagingCost, settings) {
+    const buy = toNumber(buyingPrice);
+    const variableRate = getWebsiteVariableRate(settings);
+    const targetMarginRate = toNumber(settings.defaultTargetMarginRate) / 100;
+    const fixedCosts = getWebsiteFixedCosts(settings, packagingCost);
 
     if ((1 - variableRate - targetMarginRate) <= 0) return 0;
 
@@ -95,6 +139,18 @@
     const buy = toNumber(buyingPrice);
     const variableRate = getVariableRate(settings);
     const fixedCosts = getFixedCosts(settings, packagingCost);
+
+    const variableDeduction = sell * variableRate;
+    const profit = sell - buy - variableDeduction - fixedCosts;
+
+    return round2(profit);
+  }
+
+  function calculateCurrentProfitLossWebsite(currentSellingPrice, buyingPrice, packagingCost, settings) {
+    const sell = toNumber(currentSellingPrice);
+    const buy = toNumber(buyingPrice);
+    const variableRate = getWebsiteVariableRate(settings);
+    const fixedCosts = getWebsiteFixedCosts(settings, packagingCost);
 
     const variableDeduction = sell * variableRate;
     const profit = sell - buy - variableDeduction - fixedCosts;
@@ -399,16 +455,30 @@
     settings = defaults.settings,
     lang = "en"
   }) {
-    const minimumPrice = calculateMinimumPrice(buyingPrice, packagingCost, settings);
-    const recommendedPrice = calculateRecommendedPrice(buyingPrice, packagingCost, settings);
+    // Determine which pricing mode to use
+    const isWebsiteMode = settings.mode === "website";
+    
+    // Create a modified settings object for website mode calculations
+    let effectiveSettings = settings;
+    
+    if (isWebsiteMode) {
+      // For website mode, we need to override the cost structure
+      // We'll handle this by modifying how we calculate minimumPrice and recommendedPrice
+    }
+
+    const minimumPrice = isWebsiteMode 
+      ? calculateMinimumPriceWebsite(buyingPrice, packagingCost, settings)
+      : calculateMinimumPrice(buyingPrice, packagingCost, settings);
+    
+    const recommendedPrice = isWebsiteMode
+      ? calculateRecommendedPriceWebsite(buyingPrice, packagingCost, settings)
+      : calculateRecommendedPrice(buyingPrice, packagingCost, settings);
+    
     const discountSafePrice = calculateDiscountSafePrice(minimumPrice, settings);
 
-    const profitLoss = calculateCurrentProfitLoss(
-      currentSellingPrice,
-      buyingPrice,
-      packagingCost,
-      settings
-    );
+    const profitLoss = isWebsiteMode
+      ? calculateCurrentProfitLossWebsite(currentSellingPrice, buyingPrice, packagingCost, settings)
+      : calculateCurrentProfitLoss(currentSellingPrice, buyingPrice, packagingCost, settings);
 
     const marginPercent = calculateMarginPercent(currentSellingPrice, profitLoss);
     const healthStatus = getHealthStatus(profitLoss);
@@ -505,6 +575,8 @@
 
     getVariableRate,
     getFixedCosts,
+    getWebsiteVariableRate,
+    getWebsiteFixedCosts,
 
     calculateMinimumPrice,
     calculateRecommendedPrice,
