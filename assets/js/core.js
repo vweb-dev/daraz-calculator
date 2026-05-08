@@ -1,3 +1,238 @@
+// ========== CONFIG & CALCULATIONS MODULE ==========
+
+window.APP_CONFIG = {
+  version: "1.1.0",
+
+  storageKeys: {
+    settings: "daraz_calc_settings_v1",
+    products: "daraz_calc_products_v1",
+    language: "daraz_calc_lang_v1",
+    theme: "daraz_calc_theme_v1",
+    adminAuth: "daraz_calc_admin_auth_v1",
+    competitors: "daraz_calc_competitors_v1",
+    draft: "daraz_calc_draft_v1",
+    autoSave: "daraz_calc_autosave_v1",
+    welcomeSeen: "daraz_calc_welcome_seen_v1"
+  },
+
+  limits: {
+    maxProducts: 1000,
+    maxCompetitors: 200,
+    maxSkuLength: 120,
+    maxImportFileSize: 5 * 1024 * 1024
+  },
+
+  debounce: {
+    inputDelay: 300,
+    autoSaveDelay: 1000
+  },
+
+  admin: {},
+
+  defaults: {
+    language: "en",
+
+    quickForm: {
+      sku: "",
+      buyingPrice: "",
+      packagingCost: 0,
+      currentSellingPrice: "",
+      bundleQty: 1,
+      competitorTotalPrice: "",
+      competitorQty: ""
+    },
+
+    settings: {
+      // Daraz Settings
+      mode: "daraz",
+      commissionRate: 23.20,
+      paymentFeeRate: 2.62,
+      freeShippingRate: 6.96,
+      coinsRate: 2.83,
+      voucherRate: 2.00,
+      incomeTaxRate: 2.36,
+      salesTaxRate: 2.70,
+      handlingFee: 11.60,
+      shippingShortfall: 16.87,
+      defaultDiscountRate: 10.00,
+      defaultTargetMarginRate: 10.00,
+      bundleQuantities: [1, 2, 3, 5, 10, 12],
+
+      // Website/Direct Sales Settings
+      codFeeSameCity: 150,
+      codFeeOtherCities: 250,
+      monthlyHostingCost: 10000,
+      expectedMonthlyOrders: 30,
+      paymentGatewayFeeWebsite: 2,
+      deliveryLocation: "same-city",
+      websiteSalesTaxRate: 0
+    },
+    theme: "light"
+  },
+
+  recommendationLabels: {
+    en: {
+      doNotSell: "Do Not Sell",
+      raisePrice: "Raise Price",
+      risky: "Risky",
+      safe: "Safe",
+      healthy: "Healthy",
+      betterAsBundle: "Better as Bundle"
+    },
+    ru: {
+      doNotSell: "Mat Becho",
+      raisePrice: "Price Barhao",
+      risky: "Risky",
+      safe: "Safe",
+      healthy: "Healthy",
+      betterAsBundle: "Bundle Better Hai"
+    }
+  },
+
+  healthThresholds: {
+    doNotSellMaxProfit: -0.01,
+    riskyMinProfit: 0,
+    riskyMaxProfit: 9.99,
+    safeMinProfit: 10,
+    healthyMinProfit: 25
+  },
+
+  translations: {
+    en: {
+      appTitle: "Daraz Listing Calculator Pro",
+      appSubtitle: "Enter buying price and instantly understand what to sell, at what price, and whether your current price is causing loss.",
+      welcomeTitle: "Welcome to Daraz Calculator Pro!",
+      welcomeMessage: "Enter your buying price below and get instant pricing recommendations, bundle suggestions, and profit analysis.",
+      quickCalculatorTitle: "Quick Calculator",
+      quickCalculatorSubtitle: "Enter buying price and instantly see safe prices, current loss, competitor gap, and bundle result.",
+      calculateNow: "Calculate Now",
+      saveProduct: "Save Product",
+      clear: "Clear",
+      skuProductName: "SKU / Product Name",
+      skuPlaceholder: "e.g. pc silver nosepin",
+      buyingPrice: "Buying Price *",
+      buyingPricePlaceholder: "e.g. 10",
+      packagingCost: "Packaging Cost",
+      currentSellingPrice: "Current Selling Price",
+      sellingPricePlaceholder: "e.g. 35",
+      maxBundleQty: "Bundle Qty",
+      showAssumptions: "Show all fee & cost assumptions",
+      commissionRate: "Commission Rate",
+      handlingFee: "Handling Fee",
+      shippingShortfall: "Shipping Shortfall",
+      defaultDiscount: "Default Discount",
+      competitorPricingTitle: "Competitor Pricing",
+      competitorPricingSubtitle: "Compare your listing with competitor total price and per-item quantity.",
+      competitorTotalPrice: "Competitor Total Price",
+      competitorTotalPlaceholder: "e.g. 180",
+      competitorQty: "Competitor Quantity",
+      competitorQtyPlaceholder: "e.g. 6",
+      competitorPerPiece: "Competitor Per Piece",
+      yourPerPiece: "Your Per Piece",
+      priceGap: "Gap",
+      marketPosition: "Market Position",
+      bundleCalculatorTitle: "Bundle Calculator",
+      bundleCalculatorSubtitle: "Same price, more quantity - discover how bundling increases your profits while keeping customers happy.",
+      bundleTargetPrice: "Target Bundle Price",
+      resultOverview: "Result Overview",
+      resultOverviewSubtitle: "Instantly understand pricing strategy, current reality, competitor view, and bundle potential.",
+      priceStrategy: "Price Strategy",
+      minimumPrice: "Minimum Price",
+      recommendedPrice: "Recommended Price",
+      discountSafePrice: "10% Discount-Safe Price",
+      bundleHint: "Bundle Hint",
+      currentReality: "Current Reality",
+      profitLoss: "Profit / Loss",
+      marginPercent: "Margin %",
+      status: "Status",
+      chartInsights: "Chart Insights",
+      chartInsightsSubtitle: "Quick visual understanding of profit, revenue, and pricing performance.",
+      profitLossBySku: "Profit / Loss by SKU",
+      revenueBySku: "Revenue by SKU",
+      reportPreview: "Report Preview",
+      reportPreviewSubtitle: "Print-friendly summary of current pricing decisions.",
+      printReport: "Print Report",
+      recentProducts: "Recent Products",
+      recentProductsSubtitle: "Review your latest saved products quickly. Open full Saved page for all items.",
+      viewAllSaved: "View All",
+      navCalculator: "Calculator",
+      navSaved: "Saved",
+      navAdmin: "Admin",
+      poweredBy: "Powered by",
+      fabCalculate: "Calculate",
+      fabSave: "Save",
+      fabClear: "Clear",
+      heroStatusLabel: "Live Decision"
+    },
+    ru: {
+      appTitle: "داراز کیلکولیٹر پرو",
+      appSubtitle: "خریداری کی قیمت درج کریں اور فوری طور پر سمجھیں کہ کیا بیچیں، کس قیمت پر، اور کیا آپ کی موجودہ قیمت نقصان کا سبب بن رہی ہے۔",
+      welcomeTitle: "داراز کیلکولیٹر پرو میں خوش آمدید!",
+      welcomeMessage: "نیچے اپنی خریداری کی قیمت درج کریں اور فوری قیمت کی سفارشات، بنڈل تجاویز اور منافع کا تجزیہ حاصل کریں۔",
+      quickCalculatorTitle: "فوری کیلکولیٹر",
+      quickCalculatorSubtitle: "خریداری کی قیمت درج کریں اور فوری طور پر محفوظ قیمتیں، موجودہ نقصان، مقابلہ کا فرق اور بنڈل کا نتیجہ دیکھیں۔",
+      calculateNow: "اب کیلکولیٹ کریں",
+      saveProduct: "پروڈکٹ محفوظ کریں",
+      clear: "صاف کریں",
+      skuProductName: "SKU / پروڈکٹ کا نام",
+      skuPlaceholder: "مثال کے طور پر پی سی سلور نو سپن",
+      buyingPrice: "خریداری کی قیمت *",
+      buyingPricePlaceholder: "مثال کے طور پر 10",
+      packagingCost: "پیکیجنگ لاگت",
+      currentSellingPrice: "موجودہ فروخت کی قیمت",
+      sellingPricePlaceholder: "مثال کے طور پر 35",
+      maxBundleQty: "بنڈل مقدار",
+      showAssumptions: "تمام فیس اور لاگت کی مفروضات دکھائیں",
+      commissionRate: "کمیشن ریٹ",
+      handlingFee: "ہینڈلنگ فیس",
+      shippingShortfall: "شپنگ شارٹ فال",
+      defaultDiscount: "ڈیفالٹ ڈسکاؤنٹ",
+      competitorPricingTitle: "مقابلہ کی قیمت",
+      competitorPricingSubtitle: "اپنی لسٹنگ کو مقابلہ کی کل قیمت اور فی آئٹم مقدار سے موازنہ کریں۔",
+      competitorTotalPrice: "مقابلہ کی کل قیمت",
+      competitorTotalPlaceholder: "مثال کے طور پر 180",
+      competitorQty: "مقابلہ کی مقدار",
+      competitorQtyPlaceholder: "مثال کے طور پر 6",
+      competitorPerPiece: "مقابلہ فی پیس",
+      yourPerPiece: "آپ فی پیس",
+      priceGap: "فرق",
+      marketPosition: "مارکیٹ پوزیشن",
+      bundleCalculatorTitle: "بنڈل کیلکولیٹر",
+      bundleCalculatorSubtitle: "اسی قیمت پر زیادہ مقدار - دریافت کریں کہ بنڈلنگ آپ کے منافع کو کیسے بڑھاتا ہے جبکہ صارفین کو خوش رکھتا ہے۔",
+      bundleTargetPrice: "ٹارگٹ بنڈل قیمت",
+      resultOverview: "نتیجہ کا جائزہ",
+      resultOverviewSubtitle: "قیمت کی حکمت عملی، موجودہ حقیقت، مقابلہ کا نقطہ نظر اور بنڈل کی صلاحیت فوری طور پر سمجھیں۔",
+      priceStrategy: "قیمت کی حکمت عملی",
+      minimumPrice: "کم از کم قیمت",
+      recommendedPrice: "سفارش کردہ قیمت",
+      discountSafePrice: "10% ڈسکاؤنٹ-محفوظ قیمت",
+      bundleHint: "بنڈل اشارہ",
+      currentReality: "موجودہ حقیقت",
+      profitLoss: "منافع / نقصان",
+      marginPercent: "مارجن %",
+      status: "سٹیٹس",
+      chartInsights: "چارٹ انسائٹس",
+      chartInsightsSubtitle: "منافع، آمدنی اور قیمت کی کارکردگی کی فوری بصری تفہیم۔",
+      profitLossBySku: "SKU کے مطابق منافع / نقصان",
+      revenueBySku: "SKU کے مطابق آمدنی",
+      reportPreview: "رپورٹ کا پیش نظارہ",
+      reportPreviewSubtitle: "موجودہ قیمت کے فیصلوں کا پرنٹ دوستانہ خلاصہ۔",
+      printReport: "رپورٹ پرنٹ کریں",
+      recentProducts: "حالیہ پروڈکٹس",
+      recentProductsSubtitle: "اپنی تازہ ترین محفوظ کردہ پروڈکٹس کا فوری جائزہ لیں۔ تمام آئٹمز کے لیے مکمل محفوظ صفحہ کھولیں۔",
+      viewAllSaved: "تمام دیکھیں",
+      navCalculator: "کیلکولیٹر",
+      navSaved: "محفوظ کردہ",
+      navAdmin: "ایڈمن",
+      poweredBy: "پاورڈ بائے",
+      fabCalculate: "کیلکولیٹ",
+      fabSave: "محفوظ",
+      fabClear: "صاف",
+      heroStatusLabel: "لائیو ڈیسیژن"
+    }
+  }
+};
+
 (function () {
   const {
     defaults,
@@ -65,10 +300,10 @@
     const codFee = settings.deliveryLocation === "other-cities"
       ? toNumber(settings.codFeeOtherCities)
       : toNumber(settings.codFeeSameCity);
-    
-    const hostingPerOrder = toNumber(settings.monthlyHostingCost) / 
+
+    const hostingPerOrder = toNumber(settings.monthlyHostingCost) /
                             toNumber(settings.expectedMonthlyOrders);
-    
+
     return (
       codFee +
       hostingPerOrder +
@@ -457,23 +692,23 @@
   }) {
     // Determine which pricing mode to use
     const isWebsiteMode = settings.mode === "website";
-    
+
     // Create a modified settings object for website mode calculations
     let effectiveSettings = settings;
-    
+
     if (isWebsiteMode) {
       // For website mode, we need to override the cost structure
       // We'll handle this by modifying how we calculate minimumPrice and recommendedPrice
     }
 
-    const minimumPrice = isWebsiteMode 
+    const minimumPrice = isWebsiteMode
       ? calculateMinimumPriceWebsite(buyingPrice, packagingCost, settings)
       : calculateMinimumPrice(buyingPrice, packagingCost, settings);
-    
+
     const recommendedPrice = isWebsiteMode
       ? calculateRecommendedPriceWebsite(buyingPrice, packagingCost, settings)
       : calculateRecommendedPrice(buyingPrice, packagingCost, settings);
-    
+
     const discountSafePrice = calculateDiscountSafePrice(minimumPrice, settings);
 
     const profitLoss = isWebsiteMode
@@ -582,6 +817,7 @@
     calculateRecommendedPrice,
     calculateDiscountSafePrice,
     calculateCurrentProfitLoss,
+    calculateCurrentProfitLossWebsite,
     calculateMarginPercent,
 
     getHealthStatus,

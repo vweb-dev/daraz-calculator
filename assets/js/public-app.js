@@ -44,6 +44,14 @@
       .replace(/>/g, "&gt;");
   }
 
+  function getStatusLabel(healthStatus) {
+    if (typeof healthStatus === 'object' && healthStatus.labelEn) {
+      return currentLang === "ru" ? healthStatus.labelRu : healthStatus.labelEn;
+    }
+    // Fallback for string values
+    return healthStatus || "Safe";
+  }
+
   // ---------- I18N ----------
 
   function t(key) {
@@ -198,18 +206,10 @@
     const formData = result.currentSellingPrice !== undefined ? result : getFormData();
     const sellingPrice = Calc.toNumber(result.currentSellingPrice ?? formData.currentSellingPrice);
     const packagingCost = Calc.toNumber(result.packagingCost ?? formData.packagingCost);
-    const pricingMode = settings.mode || "daraz";
 
-    // Render based on pricing mode
-    if (pricingMode === "website") {
-      renderWebsiteAssumptions(sellingPrice, packagingCost, settings);
-      $("darazAssumptionsSection").style.display = "none";
-      $("websiteAssumptionsSection").style.display = "block";
-    } else {
-      renderDarazAssumptions(sellingPrice, packagingCost, settings);
-      $("darazAssumptionsSection").style.display = "block";
-      $("websiteAssumptionsSection").style.display = "none";
-    }
+    // Render both Daraz and Website assumptions simultaneously
+    renderDarazAssumptions(sellingPrice, packagingCost, settings);
+    renderWebsiteAssumptions(sellingPrice, packagingCost, settings);
   }
 
   function renderDarazAssumptions(sellingPrice, packagingCost, settings) {
@@ -245,21 +245,21 @@
       packagingCost
     );
 
-    setText("assumptionCommission", `${Calc.round2(settings.commissionRate).toFixed(2)}%`);
-    setText("assumptionHandling", Calc.formatCurrency(settings.handlingFee));
-    setText("assumptionShippingShortfall", Calc.formatCurrency(settings.shippingShortfall));
-    setText("assumptionDiscount", `${Calc.round2(settings.defaultDiscountRate).toFixed(2)}%`);
+    setText("darazCommissionRate", `${Calc.round2(settings.commissionRate).toFixed(2)}%`);
+    setText("darazHandlingFee", Calc.formatCurrency(settings.handlingFee));
+    setText("darazShippingShortfall", Calc.formatCurrency(settings.shippingShortfall));
+    setText("darazDiscountRate", `${Calc.round2(settings.defaultDiscountRate).toFixed(2)}%`);
 
-    setText("deductionCommissionAmount", Calc.formatCurrency(commissionAmount));
-    setText("deductionPaymentFeeAmount", Calc.formatCurrency(paymentFeeAmount));
-    setText("deductionFreeShippingAmount", Calc.formatCurrency(freeShippingAmount));
-    setText("deductionCoinsAmount", Calc.formatCurrency(coinsAmount));
-    setText("deductionVoucherAmount", Calc.formatCurrency(voucherAmount));
-    setText("deductionIncomeTaxAmount", Calc.formatCurrency(incomeTaxAmount));
-    setText("deductionSalesTaxAmount", Calc.formatCurrency(salesTaxAmount));
-    setText("deductionVariableTotal", Calc.formatCurrency(totalVariable));
-    setText("assumptionPackagingCost", Calc.formatCurrency(packagingCost));
-    setText("deductionFixedTotal", Calc.formatCurrency(totalFixedCost));
+    setText("darazCommissionAmount", Calc.formatCurrency(commissionAmount));
+    setText("darazPaymentFeeAmount", Calc.formatCurrency(paymentFeeAmount));
+    setText("darazFreeShippingAmount", Calc.formatCurrency(freeShippingAmount));
+    setText("darazCoinsAmount", Calc.formatCurrency(coinsAmount));
+    setText("darazVoucherAmount", Calc.formatCurrency(voucherAmount));
+    setText("darazIncomeTaxAmount", Calc.formatCurrency(incomeTaxAmount));
+    setText("darazSalesTaxAmount", Calc.formatCurrency(salesTaxAmount));
+    setText("darazVariableTotal", Calc.formatCurrency(totalVariable));
+    setText("darazPackagingCost", Calc.formatCurrency(packagingCost));
+    setText("darazFixedTotal", Calc.formatCurrency(totalFixedCost));
   }
 
   function renderWebsiteAssumptions(sellingPrice, packagingCost, settings) {
@@ -276,6 +276,17 @@
 
     const totalVariable = Calc.round2(gatewayAmount);
     const totalFixed = Calc.round2(codFee + hostingPerOrder + packagingCost);
+    const totalFixedWithoutHosting = Calc.round2(codFee + packagingCost);
+
+    // Calculate profits for both scenarios
+    const buyingPrice = Calc.toNumber(getValue("buyingPriceInput"));
+    const profitWithCosts = Calc.calculateCurrentProfitLossWebsite(sellingPrice, buyingPrice, packagingCost, settings);
+    const profitWithoutCosts = Calc.calculateCurrentProfitLossWebsite(sellingPrice, buyingPrice, packagingCost, {
+      ...settings,
+      monthlyHostingCost: 0 // Temporarily set hosting to 0 for calculation
+    });
+
+    const profitDifference = Calc.round2(profitWithoutCosts - profitWithCosts);
 
     // Populate input fields
     setValue("codFeeSameCityInput", settings.codFeeSameCity);
@@ -285,94 +296,95 @@
     setValue("paymentGatewayFeeInput", settings.paymentGatewayFeeWebsite);
     setValue("deliveryLocationSelect", settings.deliveryLocation);
 
-    setText("assumptionCODFee", Calc.formatCurrency(codFee));
-    setText("assumptionHostingPerOrder", Calc.formatCurrency(hostingPerOrder));
-    setText("deductionCODAmount", Calc.formatCurrency(codFee));
-    setText("deductionHostingAmount", Calc.formatCurrency(hostingPerOrder));
-    setText("deductionGatewayAmount", Calc.formatCurrency(gatewayAmount));
-    setText("deductionWebsiteVariableTotal", Calc.formatCurrency(totalVariable));
-    setText("assumptionWebsitePackagingCost", Calc.formatCurrency(packagingCost));
-    setText("deductionWebsiteFixedTotal", Calc.formatCurrency(totalFixed));
+    setText("websiteHostingPerOrder", Calc.formatCurrency(hostingPerOrder));
+    setText("websiteCODFee", Calc.formatCurrency(codFee));
+    setText("websiteCODAmount", Calc.formatCurrency(codFee));
+    setText("websiteHostingAmount", Calc.formatCurrency(hostingPerOrder));
+    setText("websiteGatewayAmount", Calc.formatCurrency(gatewayAmount));
+    setText("websiteVariableTotal", Calc.formatCurrency(totalVariable));
+    setText("websitePackagingCost", Calc.formatCurrency(packagingCost));
+    setText("websiteFixedTotal", Calc.formatCurrency(totalFixed));
+
+    // Update profit comparison
+    setText("websiteProfitWithCosts", Calc.formatCurrency(profitWithCosts));
+    setText("websiteProfitWithoutCosts", Calc.formatCurrency(profitWithoutCosts));
+    setText("websiteProfitDifference", Calc.formatCurrency(profitDifference));
+    
+    setText("websiteStatusWithCosts", getStatusLabel(Calc.getHealthStatus(profitWithCosts)));
+    setText("websiteStatusWithoutCosts", getStatusLabel(Calc.getHealthStatus(profitWithoutCosts)));
   }
 
-  function toggleAssumptions() {
-    const box = $("assumptionsBox");
-    if (!box) return;
-    box.classList.toggle("hidden");
+  function renderHero(darazResult, websiteResult) {
+    // Update Daraz hero section
+    setText("darazHeroProfitValue", darazResult.formatted.profitLoss);
+    setText("darazHeroBadge", getStatusLabel(darazResult.healthStatus));
+
+    // Update Website hero section
+    setText("websiteHeroProfitValue", websiteResult.formatted.profitLoss);
+    setText("websiteHeroBadge", getStatusLabel(websiteResult.healthStatus));
+
+    // Update overall health badge (show the better/worse case)
+    const darazHealth = darazResult.healthStatus;
+    const websiteHealth = websiteResult.healthStatus;
+    
+    // Priority: danger > warning > success
+    let overallHealth = "success";
+    if (darazHealth === "danger" || websiteHealth === "danger") {
+      overallHealth = "danger";
+    } else if (darazHealth === "warning" || websiteHealth === "warning") {
+      overallHealth = "warning";
+    }
+    
+    setText("heroHealthBadge", getStatusLabel(overallHealth));
   }
 
-  // ---------- HERO + RESULTS ----------
+  function renderOverview(darazResult, websiteResult) {
+    // DARAZ RESULTS
+    setText("darazMinimumPrice", darazResult.formatted.minimumPrice);
+    setText("darazRecommendedPrice", darazResult.formatted.recommendedPrice);
+    setText("darazDiscountSafePrice", darazResult.formatted.discountSafePrice);
+    setText("darazBundleHint", darazResult.bundleHint);
 
-  function getStatusLabel(healthStatus) {
-    if (!healthStatus) return t("status");
+    setText("darazCurrentSellingPrice", darazResult.formatted.currentSellingPrice || Calc.formatCurrency(darazResult.currentSellingPrice));
+    setText("darazProfitLoss", darazResult.formatted.profitLoss);
+    setText("darazMarginPercent", darazResult.formatted.marginPercent);
+    setText("darazStatus", getStatusLabel(darazResult.healthStatus));
 
-    if (currentLang === "ru") {
-      return healthStatus.labelRu;
+    // WEBSITE RESULTS
+    setText("websiteMinimumPrice", websiteResult.formatted.minimumPrice);
+    setText("websiteRecommendedPrice", websiteResult.formatted.recommendedPrice);
+    setText("websiteDiscountSafePrice", websiteResult.formatted.discountSafePrice);
+    setText("websiteBundleHint", websiteResult.bundleHint);
+
+    setText("websiteCurrentSellingPrice", websiteResult.formatted.currentSellingPrice || Calc.formatCurrency(websiteResult.currentSellingPrice));
+    setText("websiteProfitLoss", websiteResult.formatted.profitLoss);
+    setText("websiteMarginPercent", websiteResult.formatted.marginPercent);
+    setText("websiteStatus", getStatusLabel(websiteResult.healthStatus));
+
+    // Update quick cards with Daraz results (primary mode)
+    setText("quickProfitCardValue", darazResult.formatted.profitLoss);
+    setText("quickYourPerPieceValue", darazResult.formatted.yourPerPiece);
+    setText("quickBundleHintCardValue", darazResult.bundleHint || "-");
+
+    setText("competitorPerPieceValue", darazResult.formatted.competitorPerPiece || "-");
+    setText("yourPerPieceValue", darazResult.formatted.yourPerPiece || "-");
+    setText("priceGapValue", darazResult.formatted.priceGap || "-");
+    
+    // Calculate profit if matching competitor's per-piece price
+    const competitorPerPiece = Calc.toNumber(darazResult.competitorPerPiece);
+    if (competitorPerPiece > 0) {
+      const matchProfit = Calc.calculateCurrentProfitLoss(
+        competitorPerPiece, 
+        darazResult.buyingPrice, 
+        darazResult.packagingCost, 
+        settings
+      );
+      setText("competitorMatchProfitValue", Calc.formatCurrency(matchProfit));
+    } else {
+      setText("competitorMatchProfitValue", "PKR 0.00");
     }
-    return healthStatus.labelEn;
-  }
-
-  function renderHero(result) {
-    const badge = $("heroHealthBadge");
-    if (badge) {
-      badge.textContent = getStatusLabel(result.healthStatus);
-      badge.className = `hero-status__badge badge ${result.healthStatus.className}`;
-    }
-
-    const modeBadge = $("heroModeBadge");
-    if (modeBadge) {
-      const mode = settings.mode === "website" ? "Website" : "Daraz";
-      modeBadge.textContent = mode;
-      modeBadge.style.background = settings.mode === "website" 
-        ? "rgba(100, 255, 150, 0.3)" 
-        : "rgba(100, 200, 255, 0.3)";
-      modeBadge.style.borderColor = settings.mode === "website" 
-        ? "rgba(100, 255, 150, 0.5)" 
-        : "rgba(100, 200, 255, 0.5)";
-    }
-
-    // Update pricing mode subtitle
-    const modeSubtitle = $("pricingModeSubtitle");
-    if (modeSubtitle) {
-      if (settings.mode === "website") {
-        modeSubtitle.textContent = "🌐 Website Mode: COD + Hosting Fees | Calculate price for direct sales";
-      } else {
-        modeSubtitle.textContent = "📦 Daraz Mode: Marketplace fees included | Safe prices for Daraz marketplace";
-      }
-    }
-
-    setText("heroProfitValue", result.formatted.profitLoss);
-    setHTML(
-      "heroRecommendation",
-      `<span>${escapeHtml(result.recommendation.title)} — ${escapeHtml(result.recommendation.message)}</span>`
-    );
-
-    const whyListHtml = (result.reasons || [])
-      .map((line) => `<li>${escapeHtml(line)}</li>`)
-      .join("");
-
-    setHTML("heroWhyBox", `<ul class="why-list">${whyListHtml}</ul>`);
-  }
-
-  function renderOverview(result) {
-    setText("minimumPriceValue", result.formatted.minimumPrice);
-    setText("recommendedPriceValue", result.formatted.recommendedPrice);
-    setText("discountSafePriceValue", result.formatted.discountSafePrice);
-    setText("bundleHintValue", result.bundleHint);
-
-    setText("currentSellingPriceValue", result.formatted.currentSellingPrice || Calc.formatCurrency(result.currentSellingPrice));
-    setText("profitLossValue", result.formatted.profitLoss);
-    setText("marginPercentValue", result.formatted.marginPercent);
-    setText("statusValue", getStatusLabel(result.healthStatus));
-
-    setText("quickProfitCardValue", result.formatted.profitLoss);
-    setText("quickYourPerPieceValue", result.formatted.yourPerPiece);
-    setText("quickBundleHintCardValue", result.bundleHint || "-");
-
-    setText("competitorPerPieceValue", result.formatted.competitorPerPiece || "-");
-    setText("yourPerPieceValue", result.formatted.yourPerPiece || "-");
-    setText("priceGapValue", result.formatted.priceGap || "-");
-    setText("marketPositionValue", result.marketPosition || "-");
+    
+    setText("marketPositionValue", darazResult.marketPosition || "-");
   }
 
   function renderAdvisor(result) {
@@ -719,19 +731,40 @@
 
     const data = getFormData();
 
-    const result = Calc.runPricingEngine({
+    // Run calculations for both modes
+    const darazSettings = { ...settings, mode: "daraz" };
+    const websiteSettings = { ...settings, mode: "website" };
+
+    const darazResult = Calc.runPricingEngine({
       ...data,
-      settings,
+      settings: darazSettings,
       lang: currentLang
     });
 
-    // add formatted current selling price for convenience
-    result.formatted.currentSellingPrice = Calc.formatCurrency(result.currentSellingPrice);
+    const websiteResult = Calc.runPricingEngine({
+      ...data,
+      settings: websiteSettings,
+      lang: currentLang
+    });
 
-    renderAssumptions(result);
-    renderHero(result);
-    renderOverview(result);
-    renderAdvisor(result);
+    // Add formatted current selling price for convenience
+    darazResult.formatted.currentSellingPrice = Calc.formatCurrency(darazResult.currentSellingPrice);
+    websiteResult.formatted.currentSellingPrice = Calc.formatCurrency(websiteResult.currentSellingPrice);
+
+    // Determine which website result to show based on toggle
+    const includeRunningCosts = document.getElementById("includeRunningCostsToggle") && 
+                               document.getElementById("includeRunningCostsToggle").checked;
+    const displayWebsiteResult = includeRunningCosts ? websiteResult : Calc.runPricingEngine({
+      ...data,
+      settings: { ...websiteSettings, monthlyHostingCost: 0 },
+      lang: currentLang
+    });
+    
+    // Render both modes simultaneously
+    renderAssumptions(darazResult, displayWebsiteResult);
+    renderHero(darazResult, displayWebsiteResult);
+    renderOverview(darazResult, displayWebsiteResult);
+    renderAdvisor(darazResult);
     renderCharts();
     renderReportPreview();
 
@@ -746,7 +779,7 @@
       }
     }, 300);
 
-    return result;
+    return { daraz: darazResult, website: websiteResult };
   }
 
   // Expose runCalculation to global scope for event listeners
@@ -864,6 +897,24 @@
     const targetPrice = parseFloat(getValue("bundleTargetPriceInput")) || 0;
     const buyingPrice = parseFloat(getValue("buyingPriceInput")) || 0;
     const packagingCost = parseFloat(getValue("packagingCostInput")) || 0;
+    const currentSellingPrice = parseFloat(getValue("currentSellingPriceInput")) || 0;
+
+    // Update current profit/loss in bundle section
+    if (buyingPrice > 0) {
+      const result = Calc.runPricingEngine({
+        buyingPrice,
+        packagingCost,
+        currentSellingPrice,
+        bundleQty: 1,
+        settings,
+        lang: currentLang
+      });
+      setText("bundleCurrentProfitValue", result.formatted.profitLoss);
+      setText("bundleCurrentRecommendation", result.bundleHint || "-");
+    } else {
+      setText("bundleCurrentProfitValue", "PKR 0.00");
+      setText("bundleCurrentRecommendation", "-");
+    }
 
     if (!targetPrice || !buyingPrice) {
       // Reset bundle results
@@ -1111,6 +1162,14 @@
 
     const toggleBundleViewBtn = $("toggleBundleViewBtn");
     if (toggleBundleViewBtn) toggleBundleViewBtn.addEventListener("click", toggleBundleView);
+
+    // Running costs toggle for website mode
+    const includeRunningCostsToggle = $("includeRunningCostsToggle");
+    if (includeRunningCostsToggle) {
+      includeRunningCostsToggle.addEventListener("change", () => {
+        runCalculation();
+      });
+    }
 
     // Bundle quick action buttons
     qsa("[data-bundle-price]").forEach(btn => {

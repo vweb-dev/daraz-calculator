@@ -53,29 +53,48 @@
             <!-- HERO RESULT -->
             <section class="hero-status glass" id="heroStatusCard">
                 <div class="hero-status__top">
-                    <p class="hero-status__label" data-i18n="heroStatusLabel">Live Decision</p>
+                    <p class="hero-status__label">Live Decision - Both Platforms</p>
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <span class="hero-status__badge badge badge--neutral" id="heroHealthBadge">Safe</span>
-                        <span class="hero-status__badge badge" id="heroModeBadge" style="background: rgba(100, 200, 255, 0.3); border: 1px solid rgba(100, 200, 255, 0.5);">Daraz</span>
                     </div>
                 </div>
 
                 <div class="hero-status__body">
-                    <div class="hero-status__metric">
-                        <span class="hero-status__metric-label" data-i18n="profitLoss">Profit / Loss</span>
-                        <strong class="hero-status__metric-value" id="heroProfitValue">PKR 0.00</strong>
+                    <div class="hero-modes-comparison">
+                        <!-- DARAZ MODE -->
+                        <div class="hero-mode-column">
+                            <div class="hero-mode-header">
+                                <span class="hero-mode-label">📦 Daraz</span>
+                                <span class="hero-status__badge badge" id="darazHeroBadge" style="background: rgba(100, 200, 255, 0.3); border: 1px solid rgba(100, 200, 255, 0.5);">Safe</span>
+                            </div>
+                            <div class="hero-status__metric">
+                                <span class="hero-status__metric-label">Profit / Loss</span>
+                                <strong class="hero-status__metric-value" id="darazHeroProfitValue">PKR 0.00</strong>
+                            </div>
+                        </div>
+
+                        <!-- WEBSITE MODE -->
+                        <div class="hero-mode-column">
+                            <div class="hero-mode-header">
+                                <span class="hero-mode-label">🌐 Website</span>
+                                <span class="hero-status__badge badge" id="websiteHeroBadge" style="background: rgba(100, 200, 255, 0.3); border: 1px solid rgba(100, 200, 255, 0.5);">Safe</span>
+                            </div>
+                            <div class="hero-status__metric">
+                                <span class="hero-status__metric-label">Profit / Loss</span>
+                                <strong class="hero-status__metric-value" id="websiteHeroProfitValue">PKR 0.00</strong>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="hero-status__recommendation" id="heroRecommendation">
-                        <span data-i18n="heroRecommendationDefault">Enter product values to get a pricing
-                            decision.</span>
+                        <span>Compare pricing strategies across both platforms instantly.</span>
                     </div>
                 </div>
 
                 <div class="hero-status__why" id="heroWhyBox">
                     <ul class="why-list">
-                        <li data-i18n="whyPlaceholder1">Reasoning will appear here.</li>
-                        <li data-i18n="whyPlaceholder2">It will explain why the product is safe or risky.</li>
+                        <li>Both platforms shown simultaneously for easy comparison.</li>
+                        <li>Make informed decisions about where to sell your products.</li>
                     </ul>
                 </div>
             </section>
@@ -193,152 +212,168 @@
                     </button>
 
                     <div class="assumptions-box glass-soft hidden" id="assumptionsBox">
-                        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                            <label style="display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500;">
-                                <span>Pricing Mode:</span>
-                                <select id="pricingModeToggle" style="padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);">
-                                    <option value="daraz">Daraz Marketplace</option>
-                                    <option value="website">Direct Website / COD</option>
-                                </select>
-                            </label>
-                        </div>
-
-                        <!-- DARAZ ASSUMPTIONS -->
-                        <div id="darazAssumptionsSection">
-                            <div class="assumptions-grid">
-                            <div class="assumption-item">
-                                <span data-i18n="commissionRate">Commission Rate</span>
-                                <strong id="assumptionCommission">23.20%</strong>
-                            </div>
-                            <div class="assumption-item">
-                                <span data-i18n="handlingFee">Handling Fee</span>
-                                <strong id="assumptionHandling">PKR 11.60</strong>
-                            </div>
-                            <div class="assumption-item">
-                                <span data-i18n="shippingShortfall">Shipping Shortfall</span>
-                                <strong id="assumptionShippingShortfall">PKR 16.87</strong>
-                            </div>
-                            <div class="assumption-item">
-                                <span data-i18n="defaultDiscount">Default Discount</span>
-                                <strong id="assumptionDiscount">10%</strong>
-                            </div>
-                        </div>
-                        <div class="assumptions-grid" style="margin-top: 16px;">
-                            <div class="assumption-item">
-                                <span>Commission Amount</span>
-                                <strong id="deductionCommissionAmount">PKR 0.00</strong>
-                            </div>
-                            <div class="assumption-item">
-                                <span>Payment Fee Amount</span>
-                                <strong id="deductionPaymentFeeAmount">PKR 0.00</strong>
-                            </div>
-                            <div class="assumption-item">
-                                <span>Free Shipping Amount</span>
-                                <strong id="deductionFreeShippingAmount">PKR 0.00</strong>
-                            </div>
-                            <div class="assumption-item">
-                                <span>Coins / Wallet Amount</span>
-                                <strong id="deductionCoinsAmount">PKR 0.00</strong>
-                            </div>
-                            <div class="assumption-item">
-                                <span>Voucher Amount</span>
-                                <strong id="deductionVoucherAmount">PKR 0.00</strong>
-                            </div>
-                            <div class="assumption-item">
-                                <span>Income Tax Amount</span>
-                                <strong id="deductionIncomeTaxAmount">PKR 0.00</strong>
-                            </div>
-                            <div class="assumption-item">
-                                <span>Sales Tax Amount</span>
-                                <strong id="deductionSalesTaxAmount">PKR 0.00</strong>
-                            </div>
-                            <div class="assumption-item">
-                                <span>Total Variable Deductions</span>
-                                <strong id="deductionVariableTotal">PKR 0.00</strong>
-                            </div>
-                            <div class="assumption-item">
-                                <span>Packaging Cost</span>
-                                <strong id="assumptionPackagingCost">PKR 0.00</strong>
-                            </div>
-                            <div class="assumption-item">
-                                <span>Total Fixed Costs</span>
-                                <strong id="deductionFixedTotal">PKR 0.00</strong>
-                            </div>
-                        </div>
-                        </div>
-
-                        <!-- WEBSITE ASSUMPTIONS -->
-                        <div id="websiteAssumptionsSection" style="display: none;">
-                            <div class="assumptions-grid">
-                                <div class="assumption-item">
-                                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">COD Fee</label>
-                                    <input type="number" id="codFeeSameCityInput" placeholder="150" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
-                                    <small style="display: block; margin-top: 4px;">Same City</small>
+                        <!-- PRICING MODE COMPARISON -->
+                        <div class="pricing-modes-comparison">
+                            <div class="pricing-mode-column">
+                                <h4 class="pricing-mode-title">📦 Daraz Marketplace</h4>
+                                <div class="assumptions-grid">
+                                    <div class="assumption-item">
+                                        <span>Commission Rate</span>
+                                        <strong id="darazCommissionRate">23.20%</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Handling Fee</span>
+                                        <strong id="darazHandlingFee">PKR 11.60</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Shipping Shortfall</span>
+                                        <strong id="darazShippingShortfall">PKR 16.87</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Default Discount</span>
+                                        <strong id="darazDiscountRate">10%</strong>
+                                    </div>
                                 </div>
-                                <div class="assumption-item">
-                                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">COD Fee (Other)</label>
-                                    <input type="number" id="codFeeOtherCitiesInput" placeholder="250" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
-                                    <small style="display: block; margin-top: 4px;">Other Cities</small>
-                                </div>
-                                <div class="assumption-item">
-                                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">Monthly Hosting</label>
-                                    <input type="number" id="monthlyHostingInput" placeholder="10000" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
-                                    <small style="display: block; margin-top: 4px;">PKR</small>
-                                </div>
-                                <div class="assumption-item">
-                                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">Monthly Orders</label>
-                                    <input type="number" id="expectedOrdersInput" placeholder="30" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
-                                    <small style="display: block; margin-top: 4px;">Expected</small>
+                                <div class="assumptions-grid" style="margin-top: 16px;">
+                                    <div class="assumption-item">
+                                        <span>Commission Amount</span>
+                                        <strong id="darazCommissionAmount">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Payment Fee Amount</span>
+                                        <strong id="darazPaymentFeeAmount">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Free Shipping Amount</span>
+                                        <strong id="darazFreeShippingAmount">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Coins / Wallet Amount</span>
+                                        <strong id="darazCoinsAmount">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Voucher Amount</span>
+                                        <strong id="darazVoucherAmount">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Income Tax Amount</span>
+                                        <strong id="darazIncomeTaxAmount">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Sales Tax Amount</span>
+                                        <strong id="darazSalesTaxAmount">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Total Variable Deductions</span>
+                                        <strong id="darazVariableTotal">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Packaging Cost</span>
+                                        <strong id="darazPackagingCost">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Total Fixed Costs</span>
+                                        <strong id="darazFixedTotal">PKR 0.00</strong>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="assumptions-grid" style="margin-top: 16px;">
-                                <div class="assumption-item">
-                                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">Delivery Location</label>
-                                    <select id="deliveryLocationSelect" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;">
-                                        <option value="same-city">Same City (150 PKR)</option>
-                                        <option value="other-cities">Other Cities (250 PKR)</option>
-                                    </select>
+                            <div class="pricing-mode-column">
+                                <h4 class="pricing-mode-title">🌐 Direct Website / COD</h4>
+                                
+                                <!-- Running Costs Toggle -->
+                                <div class="assumption-item" style="margin-bottom: 16px;">
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="includeRunningCostsToggle" checked style="margin: 0;" />
+                                        <span style="font-size: 14px;">Include Running Costs (PKR 10,000/month)</span>
+                                    </label>
                                 </div>
-                                <div class="assumption-item">
-                                    <label style="display: block; font-size: 12px; margin-bottom: 4px;">Payment Gateway Fee</label>
-                                    <input type="number" id="paymentGatewayFeeInput" placeholder="2" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
-                                    <small style="display: block; margin-top: 4px;">%</small>
+                                
+                                <div class="assumptions-grid">
+                                    <div class="assumption-item">
+                                        <label style="display: block; font-size: 12px; margin-bottom: 4px;">COD Fee (Same City)</label>
+                                        <input type="number" id="codFeeSameCityInput" placeholder="150" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
+                                    </div>
+                                    <div class="assumption-item">
+                                        <label style="display: block; font-size: 12px; margin-bottom: 4px;">COD Fee (Other Cities)</label>
+                                        <input type="number" id="codFeeOtherCitiesInput" placeholder="250" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
+                                    </div>
+                                    <div class="assumption-item">
+                                        <label style="display: block; font-size: 12px; margin-bottom: 4px;">Monthly Hosting</label>
+                                        <input type="number" id="monthlyHostingInput" placeholder="10000" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
+                                    </div>
+                                    <div class="assumption-item">
+                                        <label style="display: block; font-size: 12px; margin-bottom: 4px;">Monthly Orders</label>
+                                        <input type="number" id="expectedOrdersInput" placeholder="30" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
+                                    </div>
+                                    <div class="assumption-item">
+                                        <label style="display: block; font-size: 12px; margin-bottom: 4px;">Payment Gateway Fee</label>
+                                        <input type="number" id="paymentGatewayFeeInput" placeholder="2" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;" />
+                                        <small style="display: block; margin-top: 4px;">%</small>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <label style="display: block; font-size: 12px; margin-bottom: 4px;">Delivery Location</label>
+                                        <select id="deliveryLocationSelect" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: inherit;">
+                                            <option value="same-city">Same City</option>
+                                            <option value="other-cities">Other Cities</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="assumption-item">
-                                    <span>Hosting per Order</span>
-                                    <strong id="assumptionHostingPerOrder">PKR 333</strong>
+                                <div class="assumptions-grid" style="margin-top: 16px;">
+                                    <div class="assumption-item">
+                                        <span>Hosting per Order</span>
+                                        <strong id="websiteHostingPerOrder">PKR 333</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Current COD Fee</span>
+                                        <strong id="websiteCODFee">PKR 150</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>COD Charge Amount</span>
+                                        <strong id="websiteCODAmount">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Hosting Amount</span>
+                                        <strong id="websiteHostingAmount">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Payment Gateway Amount</span>
+                                        <strong id="websiteGatewayAmount">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Total Variable Deductions</span>
+                                        <strong id="websiteVariableTotal">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Packaging Cost</span>
+                                        <strong id="websitePackagingCost">PKR 0.00</strong>
+                                    </div>
+                                    <div class="assumption-item">
+                                        <span>Total Fixed Costs</span>
+                                        <strong id="websiteFixedTotal">PKR 0.00</strong>
+                                    </div>
                                 </div>
-                                <div class="assumption-item">
-                                    <span>Current COD Fee</span>
-                                    <strong id="assumptionCODFee">PKR 150</strong>
-                                </div>
-                            </div>
-
-                            <div class="assumptions-grid" style="margin-top: 16px;">
-                                <div class="assumption-item">
-                                    <span>COD Charge Amount</span>
-                                    <strong id="deductionCODAmount">PKR 0.00</strong>
-                                </div>
-                                <div class="assumption-item">
-                                    <span>Hosting Amount</span>
-                                    <strong id="deductionHostingAmount">PKR 0.00</strong>
-                                </div>
-                                <div class="assumption-item">
-                                    <span>Payment Gateway Amount</span>
-                                    <strong id="deductionGatewayAmount">PKR 0.00</strong>
-                                </div>
-                                <div class="assumption-item">
-                                    <span>Total Variable Deductions</span>
-                                    <strong id="deductionWebsiteVariableTotal">PKR 0.00</strong>
-                                </div>
-                                <div class="assumption-item">
-                                    <span>Packaging Cost</span>
-                                    <strong id="assumptionWebsitePackagingCost">PKR 0.00</strong>
-                                </div>
-                                <div class="assumption-item">
-                                    <span>Total Fixed Costs</span>
-                                    <strong id="deductionWebsiteFixedTotal">PKR 0.00</strong>
+                                
+                                <!-- Website Profit Comparison -->
+                                <div class="website-profit-comparison" style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                                    <h5 style="margin-bottom: 12px; color: var(--text-primary);">Profit Comparison</h5>
+                                    <div class="profit-comparison-grid">
+                                        <div class="profit-scenario">
+                                            <span class="scenario-label">With Running Costs</span>
+                                            <strong class="scenario-value" id="websiteProfitWithCosts">PKR 0.00</strong>
+                                            <small class="scenario-status" id="websiteStatusWithCosts">Safe</small>
+                                        </div>
+                                        <div class="profit-scenario">
+                                            <span class="scenario-label">Without Running Costs</span>
+                                            <strong class="scenario-value" id="websiteProfitWithoutCosts">PKR 0.00</strong>
+                                            <small class="scenario-status" id="websiteStatusWithoutCosts">Safe</small>
+                                        </div>
+                                        <div class="profit-scenario">
+                                            <span class="scenario-label">Difference</span>
+                                            <strong class="scenario-value" id="websiteProfitDifference">PKR 0.00</strong>
+                                            <small class="scenario-status">Monthly Impact</small>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -383,6 +418,10 @@
                         <article class="metric-card glass-soft">
                             <span class="metric-card__label" data-i18n="priceGap">Gap</span>
                             <strong class="metric-card__value" id="priceGapValue">PKR 0.00</strong>
+                        </article>
+                        <article class="metric-card glass-soft">
+                            <span class="metric-card__label">If Match Competitor</span>
+                            <strong class="metric-card__value" id="competitorMatchProfitValue">PKR 0.00</strong>
                         </article>
                         <article class="metric-card glass-soft">
                             <span class="metric-card__label" data-i18n="marketPosition">Market Position</span>
@@ -435,6 +474,18 @@
                 </div>
 
                 <div class="panel__body">
+                    <!-- CURRENT PROFIT/LOSS IN BUNDLE SECTION -->
+                    <div class="bundle-current-status" id="bundleCurrentStatus">
+                        <div class="metric-card glass-soft">
+                            <span class="metric-card__label">Current Profit / Loss</span>
+                            <strong class="metric-card__value" id="bundleCurrentProfitValue">PKR 0.00</strong>
+                        </div>
+                        <div class="metric-card glass-soft">
+                            <span class="metric-card__label">Bundle Recommendation</span>
+                            <strong class="metric-card__value metric-card__value--small" id="bundleCurrentRecommendation">-</strong>
+                        </div>
+                    </div>
+
                     <div class="bundle-controls">
                         <div class="bundle-input-group">
                             <label for="bundleTargetPriceInput" data-i18n="bundleTargetPrice">Target Bundle Price</label>
@@ -525,64 +576,107 @@
                 </div>
 
                 <div class="panel__body">
-                    <div class="result-groups">
-                        <div class="result-group">
-                            <h3 class="result-group__title" data-i18n="priceStrategy">Price Strategy</h3>
-                            <div class="metric-grid">
-                                <article class="metric-card glass-soft">
-                                    <span class="metric-card__label" data-i18n="minimumPrice">Minimum Price</span>
-                                    <strong class="metric-card__value" id="minimumPriceValue">PKR 0.00</strong>
-                                </article>
+                    <div class="pricing-results-comparison">
+                        <!-- DARAZ RESULTS -->
+                        <div class="pricing-result-column">
+                            <h3 class="pricing-result-title">📦 Daraz Marketplace</h3>
+                            <div class="result-groups">
+                                <div class="result-group">
+                                    <h4 class="result-group__title">Price Strategy</h4>
+                                    <div class="metric-grid">
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Minimum Price</span>
+                                            <strong class="metric-card__value" id="darazMinimumPrice">PKR 0.00</strong>
+                                        </article>
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Recommended Price</span>
+                                            <strong class="metric-card__value" id="darazRecommendedPrice">PKR 0.00</strong>
+                                        </article>
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">10% Discount-Safe Price</span>
+                                            <strong class="metric-card__value" id="darazDiscountSafePrice">PKR 0.00</strong>
+                                        </article>
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Bundle Hint</span>
+                                            <strong class="metric-card__value metric-card__value--small" id="darazBundleHint">-</strong>
+                                        </article>
+                                    </div>
+                                </div>
 
-                                <article class="metric-card glass-soft">
-                                    <span class="metric-card__label" data-i18n="recommendedPrice">Recommended
-                                        Price</span>
-                                    <strong class="metric-card__value" id="recommendedPriceValue">PKR 0.00</strong>
-                                </article>
-
-                                <article class="metric-card glass-soft">
-                                    <span class="metric-card__label" data-i18n="discountSafePrice">10% Discount-Safe
-                                        Price</span>
-                                    <strong class="metric-card__value" id="discountSafePriceValue">PKR 0.00</strong>
-                                </article>
-
-                                <article class="metric-card glass-soft">
-                                    <span class="metric-card__label" data-i18n="bundleHint">Bundle Hint</span>
-                                    <strong class="metric-card__value metric-card__value--small"
-                                        id="bundleHintValue">-</strong>
-                                </article>
+                                <div class="result-group">
+                                    <h4 class="result-group__title">Current Reality</h4>
+                                    <div class="metric-grid">
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Current Selling Price</span>
+                                            <strong class="metric-card__value" id="darazCurrentSellingPrice">PKR 0.00</strong>
+                                        </article>
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Profit / Loss</span>
+                                            <strong class="metric-card__value" id="darazProfitLoss">PKR 0.00</strong>
+                                        </article>
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Margin %</span>
+                                            <strong class="metric-card__value" id="darazMarginPercent">0.00%</strong>
+                                        </article>
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Status</span>
+                                            <strong class="metric-card__value metric-card__value--small" id="darazStatus">Safe</strong>
+                                        </article>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="result-group">
-                            <h3 class="result-group__title" data-i18n="currentReality">Current Reality</h3>
-                            <div class="metric-grid">
-                                <article class="metric-card glass-soft">
-                                    <span class="metric-card__label" data-i18n="currentSellingPrice">Current Selling
-                                        Price</span>
-                                    <strong class="metric-card__value" id="currentSellingPriceValue">PKR 0.00</strong>
-                                </article>
+                        <!-- WEBSITE RESULTS -->
+                        <div class="pricing-result-column">
+                            <h3 class="pricing-result-title">🌐 Direct Website / COD</h3>
+                            <div class="result-groups">
+                                <div class="result-group">
+                                    <h4 class="result-group__title">Price Strategy</h4>
+                                    <div class="metric-grid">
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Minimum Price</span>
+                                            <strong class="metric-card__value" id="websiteMinimumPrice">PKR 0.00</strong>
+                                        </article>
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Recommended Price</span>
+                                            <strong class="metric-card__value" id="websiteRecommendedPrice">PKR 0.00</strong>
+                                        </article>
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">10% Discount-Safe Price</span>
+                                            <strong class="metric-card__value" id="websiteDiscountSafePrice">PKR 0.00</strong>
+                                        </article>
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Bundle Hint</span>
+                                            <strong class="metric-card__value metric-card__value--small" id="websiteBundleHint">-</strong>
+                                        </article>
+                                    </div>
+                                </div>
 
-                                <article class="metric-card glass-soft">
-                                    <span class="metric-card__label" data-i18n="profitLoss">Profit / Loss</span>
-                                    <strong class="metric-card__value" id="profitLossValue">PKR 0.00</strong>
-                                </article>
-
-                                <article class="metric-card glass-soft">
-                                    <span class="metric-card__label" data-i18n="marginPercent">Margin %</span>
-                                    <strong class="metric-card__value" id="marginPercentValue">0.00%</strong>
-                                </article>
-
-                                <article class="metric-card glass-soft">
-                                    <span class="metric-card__label" data-i18n="status">Status</span>
-                                    <strong class="metric-card__value metric-card__value--small"
-                                        id="statusValue">Safe</strong>
-                                </article>
+                                <div class="result-group">
+                                    <h4 class="result-group__title">Current Reality</h4>
+                                    <div class="metric-grid">
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Current Selling Price</span>
+                                            <strong class="metric-card__value" id="websiteCurrentSellingPrice">PKR 0.00</strong>
+                                        </article>
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Profit / Loss</span>
+                                            <strong class="metric-card__value" id="websiteProfitLoss">PKR 0.00</strong>
+                                        </article>
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Margin %</span>
+                                            <strong class="metric-card__value" id="websiteMarginPercent">0.00%</strong>
+                                        </article>
+                                        <article class="metric-card glass-soft">
+                                            <span class="metric-card__label">Status</span>
+                                            <strong class="metric-card__value metric-card__value--small" id="websiteStatus">Safe</strong>
+                                        </article>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
                     </div>
-                </div>
             </section>
 
             <!-- RECENT PRODUCTS PREVIEW -->
@@ -778,10 +872,8 @@
         </footer>
     </div>
 
-    <script src="assets/js/config.js"></script>
-    <script src="assets/js/storage.js"></script>
-    <script src="assets/js/calculations.js"></script>
-    <script src="assets/js/notifications.js"></script>
+    <script src="assets/js/core.js"></script>
+    <script src="assets/js/utils.js"></script>
     <script src="assets/js/public-app.js"></script>
 </body>
 
