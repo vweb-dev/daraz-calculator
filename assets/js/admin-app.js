@@ -112,42 +112,7 @@
     AppNotify.success(currentLang === "ru" ? "Settings save ho gayi." : "Settings saved.");
   }
 
-  function resetSettings() {
-    const confirmText =
-      currentLang === "ru"
-        ? "Kya aap default settings restore karna chahtay hain?"
-        : "Do you want to restore default settings?";
-
-    if (!confirm(confirmText)) return;
-
-    const restored = Storage.resetSettings();
-    fillSettingsForm(restored);
-
-    AppNotify.success(
-      currentLang === "ru"
-        ? "Default settings restore ho gayi."
-        : "Default settings restored."
-    );
-  }
-
-  function resetSettings() {
-    const confirmText =
-      currentLang === "ru"
-        ? "Kya aap default settings restore karna chahtay hain?"
-        : "Do you want to restore default settings?";
-
-    if (!confirm(confirmText)) return;
-
-    const restored = Storage.resetSettings();
-    fillSettingsForm(restored);
-
-    AppNotify.success(
-      currentLang === "ru"
-        ? "Default settings restore ho gayi."
-        : "Default settings restored."
-    );
-  }
-
+  
   // ---------- CALCULATION DETAILS ----------
 
   function toggleCalculationDetails() {
