@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Daraz Listing Calculator Pro</title>
     <link rel="stylesheet" href="assets/css/app.css" />
+    <script src="https://cdn.jsdelivr.net/npm/motion@latest/dist/motion.global.min.js"></script>
 </head>
 
 <body>
@@ -693,6 +694,22 @@
                 </div>
 
                 <div class="panel__body">
+                    <!-- Search & Filter -->
+                    <div class="search-filter-bar" style="margin-bottom:16px;display:flex;flex-direction:column;gap:12px;">
+                        <div class="search-box">
+                            <span class="search-box__icon">🔍</span>
+                            <input type="text" id="productSearchInput" placeholder="Search products..." style="padding-left:40px;" />
+                            <button type="button" class="search-box__clear" id="clearSearchBtn">×</button>
+                        </div>
+                        <div class="filter-tags" id="statusFilterTags">
+                            <button type="button" class="filter-tag filter-tag--active" data-filter="all">All</button>
+                            <button type="button" class="filter-tag" data-filter="healthy">Healthy</button>
+                            <button type="button" class="filter-tag" data-filter="safe">Safe</button>
+                            <button type="button" class="filter-tag" data-filter="risky">Risky</button>
+                            <button type="button" class="filter-tag" data-filter="doNotSell">Loss</button>
+                        </div>
+                    </div>
+
                     <div class="recent-products-list" id="recentProductsList">
                         <article class="recent-card glass-soft">
                             <div class="recent-card__top">

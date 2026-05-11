@@ -107,12 +107,19 @@
   }
 
   function saveSettings() {
-    const settings = readSettingsForm();
-    Storage.saveSettings(settings);
+    const existingSettings = Storage.getSettings();
+    const newSettings = readSettingsForm();
+    const mergedSettings = { ...existingSettings, ...newSettings };
+    Storage.saveSettings(mergedSettings);
     AppNotify.success(currentLang === "ru" ? "Settings save ho gayi." : "Settings saved.");
   }
 
-  
+  function resetSettings() {
+    Storage.resetSettings();
+    fillSettingsForm();
+    AppNotify.success(currentLang === "ru" ? "Settings reset ho gayi." : "Settings reset to defaults.");
+  }
+
   // ---------- CALCULATION DETAILS ----------
 
   function toggleCalculationDetails() {
@@ -288,6 +295,11 @@
   }
 
   function init() {
+    // Register service worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
+
     applyTranslations();
     fillSettingsForm();
     bindEvents();

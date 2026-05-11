@@ -6,6 +6,9 @@
   let currentLang = Storage.getLanguage() || defaults.language;
   let settings = Storage.getSettings();
 
+  console.log('[App] Settings loaded:', settings);
+  console.log('[App] Commission Rate:', settings.commissionRate);
+
   // ---------- DOM HELPERS ----------
 
   function $(id) {
@@ -85,7 +88,7 @@
 
   function applyTheme() {
     const theme = Storage.getTheme() || window.APP_CONFIG.defaults.theme || "light";
-    document.body.classList.toggle("theme-dark", theme === "dark");
+    document.documentElement.setAttribute("data-theme", theme);
     const themeBtn = $("themeToggle");
     if (themeBtn) {
       themeBtn.innerHTML = theme === "dark" ? "☀️" : "🌙";
@@ -728,18 +731,25 @@
     }
 
     settings = Storage.getSettings();
+    console.log('[App] runCalculation - Settings:', settings);
+    console.log('[App] Commission Rate:', settings.commissionRate);
 
     const data = getFormData();
+    console.log('[App] Form Data:', data);
 
     // Run calculations for both modes
     const darazSettings = { ...settings, mode: "daraz" };
     const websiteSettings = { ...settings, mode: "website" };
+
+    console.log('[App] Daraz Settings:', darazSettings);
 
     const darazResult = Calc.runPricingEngine({
       ...data,
       settings: darazSettings,
       lang: currentLang
     });
+
+    console.log('[App] Result:', darazResult);
 
     const websiteResult = Calc.runPricingEngine({
       ...data,
@@ -1103,6 +1113,132 @@
     const clearBtn = $("clearFormBtn");
     if (clearBtn) clearBtn.addEventListener("click", clearForm);
 
+    // Search & Filter
+    const searchInput = $("productSearchInput");
+    const clearSearchBtn = $("clearSearchBtn");
+    const filterTags = qsa("#statusFilterTags .filter-tag");
+
+    let currentFilter = "all";
+    let currentSearch = "";
+
+    function applyFilters() {
+      const products = Storage.getProducts();
+      let filtered = products;
+
+      // Apply status filter
+      if (currentFilter !== "all") {
+        filtered = filtered.filter(p => {
+          const result = Calc.runPricingEngine({
+            sku: p.sku,
+            buyingPrice: p.buyingPrice,
+            packagingCost: p.packagingCost,
+            currentSellingPrice: p.currentSellingPrice,
+            bundleQty: p.bundleQty,
+            competitorTotalPrice: p.competitorTotalPrice,
+            competitorQty: p.competitorQty,
+            settings,
+            lang: currentLang
+          });
+          return result.healthStatus.key === currentFilter;
+        });
+      }
+
+      // Apply search filter
+      if (currentSearch.trim()) {
+        const searchLower = currentSearch.toLowerCase();
+        filtered = filtered.filter(p =>
+          (p.sku && p.sku.toLowerCase().includes(searchLower)) ||
+          (p.productTag && p.productTag.toLowerCase().includes(searchLower))
+        );
+      }
+
+      renderFilteredProducts(filtered.slice(0, getRecentLimit()));
+    }
+
+    function renderFilteredProducts(products) {
+      const wrap = $("recentProductsList");
+      if (!wrap) return;
+
+      if (!products.length) {
+        wrap.innerHTML = `
+          <article class="recent-card glass-soft">
+            <div class="recent-card__top">
+              <strong class="recent-card__name">${escapeHtml(t("recentProducts"))}</strong>
+              <span class="badge badge--neutral">0</span>
+            </div>
+            <p class="recent-card__note">${currentSearch || currentFilter !== "all" ? (currentLang === "ru" ? "Koi product nahi mila" : "No products found") : (currentLang === "ru" ? "Abhi koi saved product nahi." : "No saved products yet.")}</p>
+          </article>
+        `;
+        return;
+      }
+
+      wrap.innerHTML = products
+        .map((product) => {
+          const result = Calc.runPricingEngine({
+            sku: product.sku,
+            buyingPrice: product.buyingPrice,
+            packagingCost: product.packagingCost,
+            currentSellingPrice: product.currentSellingPrice,
+            bundleQty: product.bundleQty,
+            competitorTotalPrice: product.competitorTotalPrice,
+            competitorQty: product.competitorQty,
+            settings,
+            lang: currentLang
+          });
+
+          return `
+            <article class="recent-card glass-soft" data-product-id="${product.id}">
+              <div class="recent-card__top">
+                <strong class="recent-card__name">${escapeHtml(product.sku || "Unnamed Product")}</strong>
+                <span class="badge ${result.healthStatus.className}">${escapeHtml(getStatusLabel(result.healthStatus))}</span>
+              </div>
+              <div class="recent-card__meta">
+                <span>${escapeHtml(t("buyingPrice"))} ${Calc.formatCurrency(product.buyingPrice || 0)}</span>
+                <span>${escapeHtml(t("profitLoss"))} ${result.formatted.profitLoss}</span>
+              </div>
+              <p class="recent-card__note">${escapeHtml(result.recommendation.message)}</p>
+            </article>
+          `;
+        })
+        .join("");
+
+      qsa("[data-product-id]").forEach((card) => {
+        card.addEventListener("click", () => {
+          loadProductIntoForm(card.getAttribute("data-product-id"));
+        });
+      });
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        currentSearch = e.target.value;
+        const searchBox = searchInput.parentElement;
+        if (currentSearch) {
+          searchBox.classList.add("search-box--has-value");
+        } else {
+          searchBox.classList.remove("search-box--has-value");
+        }
+        applyFilters();
+      });
+    }
+
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener("click", () => {
+        currentSearch = "";
+        if (searchInput) searchInput.value = "";
+        searchInput.parentElement.classList.remove("search-box--has-value");
+        applyFilters();
+      });
+    }
+
+    filterTags.forEach(tag => {
+      tag.addEventListener("click", () => {
+        filterTags.forEach(t => t.classList.remove("filter-tag--active"));
+        tag.classList.add("filter-tag--active");
+        currentFilter = tag.getAttribute("data-filter");
+        applyFilters();
+      });
+    });
 
     const showAssumptionsBtn = $("showAssumptionsBtn");
     if (showAssumptionsBtn) showAssumptionsBtn.addEventListener("click", toggleAssumptions);
@@ -1246,6 +1382,13 @@
   }
 
   function init() {
+    // Register service worker for offline support
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js")
+        .then((reg) => console.log("[App] Service Worker registered"))
+        .catch((err) => console.log("[App] SW registration failed:", err));
+    }
+
     applyTranslations();
     bindEvents();
     renderAssumptions();
