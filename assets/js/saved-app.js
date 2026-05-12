@@ -3,8 +3,18 @@
   const Storage = window.AppStorage;
   const Calc = window.AppCalc;
 
+  // Ensure valid settings - use defaults if any required field is missing
+  function getValidSettings() {
+    const s = Storage.getSettings();
+    const d = defaults.settings;
+    if (!s || typeof s.commissionRate === 'undefined' || s.commissionRate === 0) {
+      return { ...d };
+    }
+    return { ...d, ...s };
+  }
+
   let currentLang = Storage.getLanguage() || defaults.language;
-  let settings = Storage.getSettings();
+  let settings = getValidSettings();
   let allProducts = Storage.getProducts();
   let allCompetitors = Storage.getCompetitors() || [];
 
@@ -549,7 +559,7 @@
   // ---------- RENDER ----------
 
   function renderAll() {
-    settings = Storage.getSettings();
+    settings = getValidSettings();
     allProducts = Storage.getProducts();
     allCompetitors = Storage.getCompetitors() || [];
     renderSavedProducts();

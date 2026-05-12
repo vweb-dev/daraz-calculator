@@ -3,6 +3,17 @@
   const Storage = window.AppStorage;
   const Calc = window.AppCalc;
 
+  // Ensure valid settings - use defaults if any required field is missing
+  function getValidSettings() {
+    const s = getValidSettings();
+    const d = defaults.settings;
+    if (!s || typeof s.commissionRate === 'undefined' || s.commissionRate === 0) {
+      console.log('[Admin] Using default settings');
+      return { ...d };
+    }
+    return { ...d, ...s };
+  }
+
   let currentLang = Storage.getLanguage() || defaults.language;
 
   // ---------- DOM HELPERS ----------
@@ -60,7 +71,7 @@
   // ---------- SETTINGS FORM ----------
 
   function fillSettingsForm() {
-    const settings = Storage.getSettings();
+    const settings = getValidSettings();
 
     setValue("commissionRateInput", settings.commissionRate);
     setValue("paymentFeeRateInput", settings.paymentFeeRate);
@@ -107,7 +118,7 @@
   }
 
   function saveSettings() {
-    const existingSettings = Storage.getSettings();
+    const existingSettings = getValidSettings();
     const newSettings = readSettingsForm();
     const mergedSettings = { ...existingSettings, ...newSettings };
     Storage.saveSettings(mergedSettings);
@@ -141,7 +152,7 @@
   }
 
   function refreshCalculationDetails() {
-    const settings = Storage.getSettings();
+    const settings = getValidSettings();
 
     // Get test values
     const buyingPrice = toNumber(getValue("testBuyingPriceInput")) || 10;
@@ -262,6 +273,94 @@
     });
   }
 
+  // ---------- EXPORT/IMPORT ----------
+
+  function handleExport() {
+    Storage.downloadExport();
+    AppNotify.success(currentLang === "ru" ? "Backup download ho gaya." : "Backup downloaded.");
+  }
+
+  function handleImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const result = Storage.importData(e.target.result);
+      if (result.success) {
+        AppNotify.success(currentLang === "ru"
+          ? `${result.count} products import ho gayi.`
+          : `Imported ${result.count} products.`);
+        updateAdminMetrics();
+        fillSettingsForm();
+      } else {
+        AppNotify.error(currentLang === "ru"
+          ? "Import fail ho gaya."
+          : "Import failed: " + result.error);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  }
+
+  function handleClearAllData() {
+    if (confirm(currentLang === "ru" ? "Sab data delete karna hai?" : "Delete all data?")) {
+      Storage.clearAllData();
+      localStorage.removeItem(SK.l);
+      localStorage.removeItem(SK.t);
+      localStorage.removeItem(SK.a);
+      localStorage.removeItem(SK.w);
+      AppNotify.success(currentLang === "ru" ? "Sab data delete ho gaya." : "All data cleared.");
+      updateAdminMetrics();
+      fillSettingsForm();
+    }
+  }
+
+  // ---------- ADMIN METRICS ----------
+
+  function updateAdminMetrics() {
+    const products = Storage.getProducts();
+    const competitors = Storage.getCompetitors();
+    const settings = getValidSettings();
+
+    // Total products
+    setText("adminTotalProducts", products.length.toString());
+
+    // Calculate status breakdown
+    let safeCount = 0;
+    let riskyCount = 0;
+    let totalMargin = 0;
+    let marginCount = 0;
+
+    products.forEach(product => {
+      const result = Calc.runPricingEngine({
+        buyingPrice: product.buyingPrice || 0,
+        packagingCost: product.packagingCost || 0,
+        currentSellingPrice: product.currentSellingPrice || 0,
+        settings: settings,
+        lang: currentLang
+      });
+
+      if (result.healthStatus.key === "safe" || result.healthStatus.key === "healthy") {
+        safeCount++;
+      } else if (result.healthStatus.key === "risky" || result.healthStatus.key === "doNotSell") {
+        riskyCount++;
+      }
+
+      if (result.marginPercent) {
+        totalMargin += result.marginPercent;
+        marginCount++;
+      }
+    });
+
+    setText("adminSafeProducts", safeCount.toString());
+    setText("adminRiskyProducts", riskyCount.toString());
+    setText("adminTotalCompetitors", competitors.length.toString());
+
+    const avgMargin = marginCount > 0 ? (totalMargin / marginCount).toFixed(1) : "0";
+    setText("adminAverageMargin", avgMargin + "%");
+  }
+
   // ---------- INIT ----------
 
   function bindEvents() {
@@ -292,6 +391,16 @@
       }
     });
 
+    // Export/Import
+    const exportBtn = $("adminExportBtn");
+    if (exportBtn) exportBtn.addEventListener("click", handleExport);
+
+    const importInput = $("adminImportFileInput");
+    if (importInput) importInput.addEventListener("change", handleImport);
+
+    const clearBtn = $("adminClearDataBtn");
+    if (clearBtn) clearBtn.addEventListener("click", handleClearAllData);
+
   }
 
   function init() {
@@ -302,6 +411,7 @@
 
     applyTranslations();
     fillSettingsForm();
+    updateAdminMetrics();
     bindEvents();
   }
 

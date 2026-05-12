@@ -3,8 +3,19 @@
   const Storage = window.AppStorage;
   const Calc = window.AppCalc;
 
+  // Ensure valid settings - use defaults if any required field is missing
+  function getValidSettings() {
+    const s = Storage.getSettings();
+    const d = defaults.settings;
+    if (!s || typeof s.commissionRate === 'undefined' || s.commissionRate === 0) {
+      console.log('[App] Using default settings');
+      return { ...d };
+    }
+    return { ...d, ...s };
+  }
+
   let currentLang = Storage.getLanguage() || defaults.language;
-  let settings = Storage.getSettings();
+  let settings = getValidSettings();
 
   console.log('[App] Settings loaded:', settings);
   console.log('[App] Commission Rate:', settings.commissionRate);
@@ -205,7 +216,7 @@
   // ---------- ASSUMPTIONS ----------
 
   function renderAssumptions(result = {}) {
-    settings = Storage.getSettings();
+    settings = getValidSettings();
     const formData = result.currentSellingPrice !== undefined ? result : getFormData();
     const sellingPrice = Calc.toNumber(result.currentSellingPrice ?? formData.currentSellingPrice);
     const packagingCost = Calc.toNumber(result.packagingCost ?? formData.packagingCost);
@@ -730,7 +741,7 @@
       calcBtn.disabled = true;
     }
 
-    settings = Storage.getSettings();
+    settings = getValidSettings();
     console.log('[App] runCalculation - Settings:', settings);
     console.log('[App] Commission Rate:', settings.commissionRate);
 
