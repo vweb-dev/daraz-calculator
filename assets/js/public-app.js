@@ -748,19 +748,34 @@
     const data = getFormData();
     console.log('[App] Form Data:', data);
 
+    // Validate input
+    if (!data.buyingPrice || data.buyingPrice === "") {
+      alert("Please enter a buying price");
+      if (calcBtn) {
+        calcBtn.classList.remove("btn--loading");
+        calcBtn.disabled = false;
+      }
+      return;
+    }
+
     // Run calculations for both modes
     const darazSettings = { ...settings, mode: "daraz" };
     const websiteSettings = { ...settings, mode: "website" };
 
     console.log('[App] Daraz Settings:', darazSettings);
+    console.log('[App] Variable Rate:', (darazSettings.commissionRate + darazSettings.paymentFeeRate + darazSettings.freeShippingRate + darazSettings.coinsRate + darazSettings.voucherRate + darazSettings.incomeTaxRate + darazSettings.salesTaxRate) / 100);
 
-    const darazResult = Calc.runPricingEngine({
-      ...data,
-      settings: darazSettings,
-      lang: currentLang
-    });
+    try {
+      const darazResult = Calc.runPricingEngine({
+        ...data,
+        settings: darazSettings,
+        lang: currentLang
+      });
 
-    console.log('[App] Result:', darazResult);
+      console.log('[App] Result - Minimum:', darazResult.minimumPrice, 'Recommended:', darazResult.recommendedPrice, 'Profit:', darazResult.profitLoss);
+
+      // Debug: show calculated values in alert
+      alert(`Calculation Test:\nMinimum: PKR ${darazResult.minimumPrice.toFixed(2)}\nRecommended: PKR ${darazResult.recommendedPrice.toFixed(2)}\nProfit: PKR ${darazResult.profitLoss.toFixed(2)}`);
 
     const websiteResult = Calc.runPricingEngine({
       ...data,
