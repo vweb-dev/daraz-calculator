@@ -1,3 +1,19 @@
+<!-- VWEB:AUTO-README:START -->
+<div align="center"><img src="assets/vweb-readme-banner.svg" width="100%" alt="daraz-calculator project graphic" /></div>
+
+### Code-derived project snapshot
+
+| Attribute | Detected value |
+|---|---|
+| Latest source revision | `0fd7ac752d12` |
+| Tracked files reviewed | 24 |
+| Framework and platform indicators | JavaScript  /  HTML  /  CSS |
+| Source file types | JavaScript (10), HTML (3), CSS (2), JSON (1) |
+| Main directories | assets |
+
+> This section is regenerated from tracked filenames and manifests on code updates. It is not a QA or production-readiness certification. Handwritten project documentation is preserved.
+<!-- VWEB:AUTO-README:END -->
+
 # Daraz Calculator Pro
 
 A comprehensive pricing calculator for Daraz marketplace sellers, optimized for Pakistani e-commerce businesses.
